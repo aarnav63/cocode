@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Profile from './pages/Profile';
 import HackathonDetails from './pages/HackathonDetails';
 import OrganizerDashboard from './pages/OrganizerDashboard';
@@ -17,16 +18,19 @@ function App() {
       <Router>
         <div className="app-container">
           <Navbar />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/explore" element={<Explore />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/profile/:id" element={<Profile />} />
-              <Route path="/hackathon/:id" element={<HackathonDetails />} />
-              <Route path="/organizer" element={<OrganizerDashboard />} />
-            </Routes>
-          </main>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <main className="main-content" style={{ width: '100%', flex: 1 }}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/explore" element={<Explore />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/hackathon/:id" element={<HackathonDetails />} />
+                <Route path="/organizer" element={<OrganizerDashboard />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
         </div>
       </Router>
     </GoogleOAuthProvider>

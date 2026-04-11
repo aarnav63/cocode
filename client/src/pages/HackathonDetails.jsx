@@ -8,7 +8,7 @@ const HackathonDetails = () => {
   const role = localStorage.getItem('role');
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/hackathons/${id}`)
+    axios.get(`/api/hackathons/${id}`)
       .then(res => setHackathon(res.data))
       .catch(err => console.error(err));
   }, [id]);

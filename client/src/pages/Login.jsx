@@ -36,7 +36,7 @@ const Login = () => {
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await axios.post('http://localhost:5000/api/auth/google', {
+        const res = await axios.post('/api/auth/google', {
           access_token: tokenResponse.access_token,
         });
 
@@ -64,7 +64,7 @@ const Login = () => {
     try {
       const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s);
       
-      const res = await axios.post('http://localhost:5000/api/auth/complete-profile', {
+      const res = await axios.post('/api/auth/complete-profile', {
         name, email, googleId, role, location, phone, skills: skillsArray
       });
       localStorage.setItem('token', res.data.token);

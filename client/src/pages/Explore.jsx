@@ -14,8 +14,8 @@ const Explore = () => {
   const fetchProjects = async () => {
     try {
       const [hacksRes, projRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/hackathons'),
-        axios.get('http://localhost:5000/api/projects')
+        axios.get('/api/hackathons'),
+        axios.get('/api/projects')
       ]);
       const formattedHacks = hacksRes.data.map(h => ({ ...h, type: 'Hackathon', required: [], creatorId: h.organizerId }));
       const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId }));
@@ -30,7 +30,7 @@ const Explore = () => {
   const handleRequestJoin = async (projId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/projects/${projId}/request`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`/api/projects/${projId}/request`, {}, { headers: { Authorization: `Bearer ${token}` } });
       
       // Update UI instantaneously
       setProjects(projects.map(p => {
@@ -53,7 +53,7 @@ const Explore = () => {
       if (skillFilter) query.append('skill', skillFilter);
       if (locationFilter) query.append('location', locationFilter);
       
-      const res = await axios.get(`http://localhost:5000/api/users/developers?${query.toString()}`);
+      const res = await axios.get(`/api/users/developers?${query.toString()}`);
       setDevs(res.data.filter(dev => dev._id !== currentUserId));
     } catch (e) { console.error(e); }
   };

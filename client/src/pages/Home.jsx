@@ -14,19 +14,19 @@ const Home = () => {
   const [requiredDevs, setRequiredDevs] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/hackathons')
+    axios.get('/api/hackathons')
       .then(res => setHackathons(res.data))
       .catch(err => console.error('Error fetching hackathons:', err));
 
     const token = localStorage.getItem('token');
     if (token) {
-      axios.get('http://localhost:5000/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      axios.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
         .then(res => setUserName(res.data.name || ''))
         .catch(() => setUserName(''));
     }
 
     if (token && role !== 'organizer') {
-      axios.get('http://localhost:5000/api/projects/me', { headers: { Authorization: `Bearer ${token}` } })
+      axios.get('/api/projects/me', { headers: { Authorization: `Bearer ${token}` } })
         .then(res => setMyProjects(res.data))
         .catch(err => console.error('Error fetching my projects', err));
     }
@@ -35,7 +35,7 @@ const Home = () => {
   const acceptRequest = async (projId, userId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/projects/${projId}/accept/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/projects/${projId}/accept/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
       window.location.reload();
     } catch(err) { alert('Error accepting request: ' + err.message); }
   };
@@ -56,7 +56,7 @@ const Home = () => {
         return { skill, count, fulfilled: false };
       }).filter(s => s.skill);
 
-      await axios.post('http://localhost:5000/api/projects', 
+      await axios.post('/api/projects', 
         { title, description, requiredDevs: devsArray },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -163,7 +163,7 @@ const Home = () => {
                     onClick={async () => {
                       try {
                         const token = localStorage.getItem('token');
-                        await axios.put(`http://localhost:5000/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                        await axios.put(`/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
                         window.location.reload();
                       } catch (err) {
                         alert('Error marking developers found: ' + err.message);

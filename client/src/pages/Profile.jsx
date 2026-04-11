@@ -11,7 +11,7 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem('token');
-        const endpoint = id === 'me' ? 'http://localhost:5000/api/auth/me' : `http://localhost:5000/api/users/${id}/stats`;
+        const endpoint = id === 'me' ? '/api/auth/me' : `/api/users/${id}/stats`;
         const res = await axios.get(endpoint, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });

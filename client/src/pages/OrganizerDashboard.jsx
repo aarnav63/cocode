@@ -7,7 +7,7 @@ const OrganizerDashboard = () => {
 
   useEffect(() => {
     // Dynamic fetch to replace static mock events
-    axios.get('http://localhost:5000/api/hackathons')
+    axios.get('/api/hackathons')
       .then(res => setEvents(res.data))
       .catch(err => console.error(err));
   }, []);
