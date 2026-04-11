@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const History = () => {
   const [historyProjects, setHistoryProjects] = useState([]);
+  const [myRatings, setMyRatings] = useState([]);
   const [showRateModal, setShowRateModal] = useState(false);
   const [ratee, setRatee] = useState(null);
   const [activeProjectId, setActiveProjectId] = useState(null);
@@ -14,8 +15,12 @@ const History = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const res = await axios.get('/api/projects/history', { headers: { Authorization: `Bearer ${token}` } });
-        setHistoryProjects(res.data);
+        const [projRes, ratingsRes] = await Promise.all([
+          axios.get('/api/projects/history', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('/api/ratings/me', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        setHistoryProjects(projRes.data);
+        setMyRatings(ratingsRes.data || []);
       } catch (err) {
         console.error('Error fetching history:', err);
       }
@@ -43,7 +48,7 @@ const History = () => {
       }, { headers: { Authorization: `Bearer ${token}` } });
       
       setShowRateModal(false);
-      // Let's use standard alert for completion or just console log since alerts were annoying
+      setMyRatings([...myRatings, { rateeId: ratee._id, hackathonId: activeProjectId }]);
       console.log('Rating submitted successfully!');
     } catch (err) {
       console.error('Error submitting rating:', err);
@@ -79,8 +84,12 @@ const History = () => {
                     </Link>
                   </div>
                   {p.creatorId?._id !== currentUserId && (
-                    <button className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }} onClick={() => openRateModal(p.creatorId, p._id)}>
-                      Rate Team Leader
+                    <button 
+                      className="btn btn-primary" 
+                      style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', opacity: myRatings.some(r => r.rateeId === p.creatorId?._id && r.hackathonId === p._id) ? 0.5 : 1 }} 
+                      disabled={myRatings.some(r => r.rateeId === p.creatorId?._id && r.hackathonId === p._id)}
+                      onClick={() => openRateModal(p.creatorId, p._id)}>
+                      {myRatings.some(r => r.rateeId === p.creatorId?._id && r.hackathonId === p._id) ? 'Rated' : 'Rate Team Leader'}
                     </button>
                   )}
                 </div>
@@ -94,8 +103,12 @@ const History = () => {
                       <div style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>{c.role}</div>
                     </div>
                     {c._id !== currentUserId && (
-                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }} onClick={() => openRateModal(c, p._id)}>
-                        Rate Collaborator
+                      <button 
+                        className="btn btn-outline" 
+                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', opacity: myRatings.some(r => r.rateeId === c._id && r.hackathonId === p._id) ? 0.5 : 1 }}
+                        disabled={myRatings.some(r => r.rateeId === c._id && r.hackathonId === p._id)}
+                        onClick={() => openRateModal(c, p._id)}>
+                        {myRatings.some(r => r.rateeId === c._id && r.hackathonId === p._id) ? 'Rated' : 'Rate Collaborator'}
                       </button>
                     )}
                   </div>

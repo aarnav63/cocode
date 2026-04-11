@@ -50,3 +50,12 @@ export const submitRating = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getMyRatings = async (req, res) => {
+  try {
+    const ratings = await Rating.find({ raterId: req.user._id });
+    res.json(ratings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

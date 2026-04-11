@@ -152,12 +152,41 @@ const Profile = () => {
           ))}
         </div>
 
-        <div style={{ marginTop: '3rem', textAlign: 'center', padding: '2rem', background: 'rgba(78, 222, 163, 0.1)', borderRadius: '12px', border: '1px solid rgba(78, 222, 163, 0.2)' }}>
-          <h3 style={{ color: 'var(--secondary)' }}>Highly Reliable Collaborator</h3>
-          <p style={{ color: 'var(--on-surface-variant)' }}>
-            {user.name.split(' ')[0]} has effectively contributed to {user.hackathonsParticipated} hackathons and is rated in the top 10% for reliability!
-          </p>
-        </div>
+        {(() => {
+          let title = 'Emerging Developer';
+          let color = 'var(--on-surface-variant)';
+          let rgb = '150, 150, 150';
+          let text = 'This developer has not been rated yet. Give them a chance!';
+          
+          if (user.trustScore.totalRatings > 0) {
+            const avg = (user.trustScore.communication + user.trustScore.leadership + user.trustScore.reliability) / 3;
+            if (avg >= 4) {
+              title = 'Highly Rated Developer';
+              color = 'var(--secondary)';
+              rgb = '78, 222, 163';
+              text = 'This developer is top-tier and highly recommended by peers.';
+            } else if (avg >= 2.5) {
+              title = 'Solid Developer';
+              color = '#f39c12';
+              rgb = '243, 156, 18';
+              text = 'This developer is a solid and reliable typical team member.';
+            } else {
+              title = 'Needs Improvement';
+              color = '#ff6b6b';
+              rgb = '255, 107, 107';
+              text = 'This developer has received mixed feedback from previous teams.';
+            }
+          }
+
+          return (
+            <div style={{ marginTop: '3rem', textAlign: 'center', padding: '2rem', background: `rgba(${rgb}, 0.1)`, borderRadius: '12px', border: `1px solid rgba(${rgb}, 0.2)` }}>
+              <h3 style={{ color }}>{title}</h3>
+              <p style={{ color: 'var(--on-surface-variant)', marginTop: '0.5rem' }}>
+                {user.name.split(' ')[0]} has effectively contributed to {user.hackathonsParticipated} projects. {text}
+              </p>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
