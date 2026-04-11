@@ -6,6 +6,8 @@ const Profile = () => {
   const { id } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ location: '', phone: '', skills: '' });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -16,16 +18,21 @@ const Profile = () => {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
         
-        // Handle varying response structures map defaults if new user
+        const u = res.data;
         setUser({
-          ...res.data,
-          role: res.data.role || 'Full-Stack Developer',
-          location: res.data.location || 'Remote',
-          email: res.data.email || '',
-          phone: res.data.phone || '',
-          skills: res.data.skills || [],
-          trustScore: res.data.trustScore || { communication: 0, leadership: 0, reliability: 0, totalRatings: 0 },
-          hackathonsParticipated: res.data.hackathonsParticipated?.length || 0
+          ...u,
+          role: u.role || 'Full-Stack Developer',
+          location: u.location || 'Remote',
+          email: u.email || '',
+          phone: u.phone || '',
+          skills: u.skills || [],
+          trustScore: u.trustScore || { communication: 0, leadership: 0, reliability: 0, totalRatings: 0 },
+          hackathonsParticipated: u.hackathonsParticipated?.length || 0
+        });
+        setEditData({
+          location: u.location || 'Remote',
+          phone: u.phone || '',
+          skills: (u.skills || []).join(', ')
         });
         setLoading(false);
       } catch (error) {
@@ -35,6 +42,23 @@ const Profile = () => {
     };
     fetchUser();
   }, [id]);
+
+  const handleSaveProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const skillsArray = editData.skills.split(',').map(s => s.trim()).filter(s => s);
+      const res = await axios.put('/api/users/profile', {
+        location: editData.location,
+        phone: editData.phone,
+        skills: skillsArray
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      setUser({ ...user, location: res.data.location, phone: res.data.phone, skills: res.data.skills });
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error updating profile: ', err);
+    }
+  };
 
   if (loading) return <div style={{ textAlign: 'center', marginTop: '4rem' }}>Loading profile...</div>;
   if (!user) return <div style={{ textAlign: 'center', marginTop: '4rem' }}>Profile not found.</div>;
@@ -47,30 +71,59 @@ const Profile = () => {
         </div>
         <h2>{user.name}</h2>
         <p style={{ color: 'var(--on-surface-variant)', marginBottom: '1rem' }}>{user.role}</p>
-        <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
-          📍 {user.location}
-        </p>
-        {user.email && (
-          <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
-            ✉️ {user.email}
-          </p>
+
+        {isEditing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+            <div>
+              <label className="input-label" style={{ fontSize: '0.8rem' }}>Location</label>
+              <input type="text" className="input-field" value={editData.location} onChange={e => setEditData({...editData, location: e.target.value})} />
+            </div>
+            <div>
+              <label className="input-label" style={{ fontSize: '0.8rem' }}>Phone</label>
+              <input type="text" className="input-field" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} />
+            </div>
+            <div>
+              <label className="input-label" style={{ fontSize: '0.8rem' }}>Skills (comma separated)</label>
+              <input type="text" className="input-field" value={editData.skills} onChange={e => setEditData({...editData, skills: e.target.value})} />
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button className="btn btn-primary" onClick={handleSaveProfile} style={{ flex: 1, padding: '0.5rem' }}>Save</button>
+              <button className="btn btn-outline" onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '0.5rem' }}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
+              📍 {user.location}
+            </p>
+            {user.email && (
+              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
+                ✉️ {user.email}
+              </p>
+            )}
+            {user.phone && (
+              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
+                📞 {user.phone}
+              </p>
+            )}
+            
+            <hr style={{ borderColor: 'var(--outline-variant)', margin: '1.5rem 0' }} />
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1.1rem' }}>Skills</h3>
+              {(id === 'me' || localStorage.getItem('userId') === user._id) && (
+                <button className="btn btn-outline" onClick={() => setIsEditing(true)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Edit</button>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+              {user.skills.map(s => (
+                <span key={s} className="pill-tag">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </>
         )}
-        {user.phone && (
-          <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
-            📞 {user.phone}
-          </p>
-        )}
-        
-        <hr style={{ borderColor: 'var(--outline-variant)', margin: '1.5rem 0' }} />
-        
-        <h3 style={{ textAlign: 'left', fontSize: '1.1rem' }}>Skills</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-          {user.skills.map(s => (
-            <span key={s} className="pill-tag">
-              {s}
-            </span>
-          ))}
-        </div>
       </div>
 
       <div className="glass-panel">

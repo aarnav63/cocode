@@ -1,5 +1,5 @@
-import express from 'express';
-import { createProject, getProjects, getMyProjects, acceptRequest, completeProject, fulfillRequirement, requestToJoin, getJoinedProjects } from '../controllers/projectController.js';
+  import express from 'express';
+import { createProject, getProjects, getMyProjects, acceptRequest, completeProject, fulfillRequirement, requestToJoin, getJoinedProjects, rejectRequest, removeCollaborator } from '../controllers/projectController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -9,6 +9,8 @@ router.get('/joined', protect, getJoinedProjects);
 router.post('/', protect, createProject);
 router.get('/', getProjects);
 router.put('/:projId/accept/:userId', protect, acceptRequest);
+router.put('/:projId/reject/:userId', protect, rejectRequest);
+router.put('/:projId/remove/:userId', protect, removeCollaborator);
 router.put('/:projId/complete', protect, completeProject);
 router.put('/:projId/fulfill/:reqId', protect, fulfillRequirement);
 router.post('/:projId/request', protect, requestToJoin);

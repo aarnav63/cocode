@@ -18,7 +18,7 @@ const Explore = () => {
         axios.get('/api/projects')
       ]);
       const formattedHacks = hacksRes.data.map(h => ({ ...h, type: 'Hackathon', required: [], creatorId: h.organizerId }));
-      const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId }));
+      const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId, collaborators: p.collaborators || [] }));
       
       setProjects([...formattedHacks, ...formattedProjects]);
     } catch (e) {
@@ -39,9 +39,8 @@ const Explore = () => {
         }
         return p;
       }));
-      alert("Successfully requested to join!");
     } catch (err) {
-      alert("Error: " + err.message);
+      console.error('Error requesting to join: ', err.response?.data?.message || err.message);
     }
   };
 
@@ -95,18 +94,38 @@ const Explore = () => {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                    {/* Handle legacy array of strings or new array of objects */}
                   {p.required.map((r, i) => <span key={i} className="pill-tag" style={{ textDecoration: r.fulfilled ? 'line-through' : 'none', opacity: r.fulfilled ? 0.5 : 1 }}>
-                    {typeof r === 'string' ? r : `${r.count}x ${r.skill}`}
+                    {typeof r === 'string' ? r : r.skill}
                   </span>)}
                 </div>
                 {role !== 'organizer' && p.creatorId !== localStorage.getItem('userId') && (
-                  <button 
-                    className="btn btn-primary" 
-                    style={{ marginTop: '1rem', opacity: (p.requests || []).includes(localStorage.getItem('userId')) ? 0.5 : 1 }} 
-                    onClick={() => handleRequestJoin(p._id)}
-                    disabled={(p.requests || []).includes(localStorage.getItem('userId'))}
-                  >
-                    {(p.requests || []).includes(localStorage.getItem('userId')) ? 'Requested' : 'Request to Join'}
-                  </button>
+                  (() => {
+                    const isRequested = (p.requests || []).includes(localStorage.getItem('userId'));
+                    const isCollaborator = p.collaborators && p.collaborators.some(collab => collab === localStorage.getItem('userId') || collab._id === localStorage.getItem('userId'));
+
+                    if (isCollaborator) {
+                      return (
+                        <button className="btn btn-primary" style={{ marginTop: '1rem', opacity: 0.5 }} disabled>
+                          Joined
+                        </button>
+                      );
+                    }
+                    if (isRequested) {
+                      return (
+                        <button className="btn btn-primary" style={{ marginTop: '1rem', opacity: 0.5 }} disabled>
+                          Requested
+                        </button>
+                      );
+                    }
+                    return (
+                      <button 
+                        className="btn btn-primary" 
+                        style={{ marginTop: '1rem' }} 
+                        onClick={() => handleRequestJoin(p._id)}
+                      >
+                        Request to Join
+                      </button>
+                    );
+                  })()
                 )}
                 {p.creatorId === localStorage.getItem('userId') && (
                   <span style={{ marginTop: '1rem', color: 'var(--primary)' }}>Your Project</span>

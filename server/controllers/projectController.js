@@ -31,12 +31,12 @@ export const completeProject = async (req, res) => {
     if (!project) return res.status(404).json({ message: 'Project not found' });
     if (project.creatorId.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized' });
 
-    project.isOpen = false;
+    project.isOpen = !project.isOpen;
     await project.save();
 
     res.json(project);
   } catch (error) {
-    res.status(500).json({ message: 'Error completing project', error: error.message });
+    res.status(500).json({ message: 'Error toggling project status', error: error.message });
   }
 };
 
@@ -53,7 +53,9 @@ export const getMyProjects = async (req, res) => {
 
 export const getJoinedProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ collaborators: req.user._id }).populate('creatorId', 'name email');
+    const projects = await Project.find({ collaborators: req.user._id })
+      .populate('creatorId', 'name email')
+      .populate('collaborators', 'name role skills email phone');
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching joined projects', error: error.message });
@@ -85,6 +87,45 @@ export const acceptRequest = async (req, res) => {
   }
 };
 
+export const rejectRequest = async (req, res) => {
+  try {
+    const { projId, userId } = req.params;
+    const project = await Project.findById(projId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (project.creatorId.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized' });
+
+    const requestIndex = project.requests.findIndex(reqUserId => reqUserId.toString() === userId);
+    if (requestIndex !== -1) {
+      project.requests.splice(requestIndex, 1);
+      if (!project.rejected.includes(userId)) project.rejected.push(userId);
+      await project.save();
+    }
+
+    const updatedProject = await Project.findById(projId)
+      .populate('requests', 'name role skills email phone')
+      .populate('collaborators', 'name role skills email phone');
+    res.json(updatedProject);
+  } catch (error) {
+    res.status(500).json({ message: 'Error rejecting request', error: error.message });
+  }
+};
+
+export const removeCollaborator = async (req, res) => {
+  try {
+    const { projId, userId } = req.params;
+    const project = await Project.findById(projId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (project.creatorId.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized' });
+
+    project.collaborators = project.collaborators.filter(c => c.toString() !== userId.toString());
+    await project.save();
+
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: 'Error removing collaborator', error: error.message });
+  }
+};
+
 export const fulfillRequirement = async (req, res) => {
   try {
     const { projId, reqId } = req.params;
@@ -109,6 +150,11 @@ export const requestToJoin = async (req, res) => {
     const project = await Project.findById(projId);
     if (!project) return res.status(404).json({ message: 'Project not found' });
     
+    // Check if user is rejected
+    if (project.rejected && project.rejected.includes(req.user._id)) {
+      return res.status(403).json({ message: 'You have been rejected from this project and cannot apply again.' });
+    }
+
     // Ensure we don't duplicate
     if (!project.requests.includes(req.user._id)) {
       project.requests.push(req.user._id);
