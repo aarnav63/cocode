@@ -1,9 +1,10 @@
 import Hackathon from '../models/Hackathon.js';
 import User from '../models/User.js';
+import Project from '../models/Project.js';
 
 export const createHackathon = async (req, res) => {
   try {
-    const { title, description, date, rules } = req.body;
+    const { title, description, startDate, endDate, location, rules } = req.body;
 
     if (req.user.role !== 'organizer') {
       return res.status(403).json({ message: 'Only organizers can create hackathons' });
@@ -12,7 +13,9 @@ export const createHackathon = async (req, res) => {
     const hackathon = await Hackathon.create({
       title,
       description,
-      date,
+      startDate,
+      endDate,
+      location,
       rules,
       organizerId: req.user._id,
     });
@@ -36,12 +39,14 @@ export const getHackathonById = async (req, res) => {
   try {
     const hackathon = await Hackathon.findById(req.params.id)
       .populate('organizerId', 'name')
-      .populate('participants', 'name skills')
-      .populate('teams');
-    
+      .populate('participants', 'name skills');
+      
     if (!hackathon) return res.status(404).json({ message: 'Hackathon not found' });
+
+    // Projects bound to this hackathon act as its teams
+    const teams = await Project.find({ hackathonId: req.params.id }).populate('creatorId', 'name').lean();
     
-    res.json(hackathon);
+    res.json({ ...hackathon.toObject(), teams });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -22,8 +22,21 @@ export const getDevelopers = async (req, res) => {
 
 export const getUniqueSkills = async (req, res) => {
   try {
-    const skills = await User.distinct('skills', { role: 'developer' });
-    res.json(skills.filter(s => s));
+    const rawSkills = await User.distinct('skills', { role: 'developer' });
+    const uniqueMap = new Map();
+    rawSkills.filter(s => s).forEach(s => {
+      const lower = s.trim().toLowerCase();
+      if (!uniqueMap.has(lower)) {
+        uniqueMap.set(lower, s.trim());
+      } else {
+        // Prefer Title/CamelCase over all-lowercase
+        const current = uniqueMap.get(lower);
+        if (s.trim() !== lower && current === lower) {
+          uniqueMap.set(lower, s.trim());
+        }
+      }
+    });
+    res.json(Array.from(uniqueMap.values()).sort());
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -31,8 +44,15 @@ export const getUniqueSkills = async (req, res) => {
 
 export const getUniqueLocations = async (req, res) => {
   try {
-    const locations = await User.distinct('location', { role: 'developer' });
-    res.json(locations.filter(l => l));
+    const rawLocations = await User.distinct('location', { role: 'developer' });
+    const uniqueMap = new Map();
+    rawLocations.filter(l => l).forEach(l => {
+      const lower = l.trim().toLowerCase();
+      if (!uniqueMap.has(lower)) {
+        uniqueMap.set(lower, l.trim());
+      }
+    });
+    res.json(Array.from(uniqueMap.values()).sort());
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

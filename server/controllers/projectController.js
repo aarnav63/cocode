@@ -2,13 +2,16 @@ import Project from '../models/Project.js';
 
 export const createProject = async (req, res) => {
   try {
-    const { title, description, requiredDevs } = req.body;
-    const newProject = await Project.create({
+    const { title, description, requiredDevs, hackathonId } = req.body;
+    const payload = {
       title,
       description,
       requiredDevs,
       creatorId: req.user._id
-    });
+    };
+    if (hackathonId) payload.hackathonId = hackathonId;
+    
+    const newProject = await Project.create(payload);
     res.status(201).json(newProject);
   } catch (error) {
     res.status(500).json({ message: 'Error creating project', error: error.message });

@@ -1,16 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const formatDateStr = (dateString) => {
+  if (!dateString) return 'Invalid Date';
+  const dt = new Date(dateString);
+  if (isNaN(dt.getTime())) return 'Invalid Date';
+  return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
+};
+
 const OrganizerDashboard = () => {
   const [activeTab, setActiveTab] = useState('events');
   const [events, setEvents] = useState([]);
+  
+  const [formData, setFormData] = useState({
+    title: '', description: '', startDate: '', endDate: '', location: '', rules: ''
+  });
+
+  const fetchEvents = () => {
+    const token = localStorage.getItem('token');
+    axios.get('/api/hackathons', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        // filter events to only show those by this organizer
+        const mine = res.data.filter(h => h.organizerId._id === localStorage.getItem('userId') || h.organizerId === localStorage.getItem('userId'));
+        setEvents(mine);
+      })
+      .catch(err => console.error(err));
+  };
 
   useEffect(() => {
-    // Dynamic fetch to replace static mock events
-    axios.get('/api/hackathons')
-      .then(res => setEvents(res.data))
-      .catch(err => console.error(err));
+    fetchEvents();
   }, []);
+
+  const handleCreateHackathon = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/hackathons', formData, { headers: { Authorization: `Bearer ${token}` } });
+      setFormData({ title: '', description: '', startDate: '', endDate: '', location: '', rules: '' });
+      setActiveTab('events');
+      fetchEvents();
+      console.log('Hackathon created successfully');
+    } catch (err) {
+      console.error('Error creating hackathon:', err);
+    }
+  };
 
   return (
     <div>
@@ -43,6 +76,9 @@ const OrganizerDashboard = () => {
                     {e.isOpen ? 'Live Registration' : 'Closed'}
                   </span>
                 </div>
+                <div style={{ color: 'var(--on-surface-variant)', fontSize: '0.875rem' }}>
+                  <span>📍 {e.location}</span> | <span>🗓️ {formatDateStr(e.startDate)} - {formatDateStr(e.endDate)}</span>
+                </div>
                 
                 <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginTop: '2rem' }}>
                   <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--background)', borderRadius: '8px' }}>
@@ -54,7 +90,9 @@ const OrganizerDashboard = () => {
                     <div style={{ color: 'var(--on-surface-variant)', fontSize: '0.875rem' }}>Teams Formed</div>
                   </div>
                   <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--background)', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '2rem', color: 'var(--primary)', fontWeight: 'bold' }}>-</div>
+                    <div style={{ fontSize: '2rem', color: 'var(--primary)', fontWeight: 'bold' }}>
+                      {Math.max(0, Math.ceil((new Date(e.startDate) - new Date()) / (1000 * 60 * 60 * 24)))}
+                    </div>
                     <div style={{ color: 'var(--on-surface-variant)', fontSize: '0.875rem' }}>Days until event</div>
                   </div>
                 </div>
@@ -64,20 +102,34 @@ const OrganizerDashboard = () => {
         ) : (
           <div>
             <h2 style={{ marginBottom: '1.5rem' }}>Create Hackathon</h2>
-            <form style={{ maxWidth: '600px' }} onSubmit={e => e.preventDefault()}>
+            <form style={{ maxWidth: '600px' }} onSubmit={handleCreateHackathon}>
               <div className="input-group">
                 <label className="input-label">Event Title</label>
-                <input type="text" className="input-field" placeholder="e.g. Web3 Builders League" />
+                <input type="text" required className="input-field" placeholder="e.g. Web3 Builders League" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
               </div>
-              <div className="input-group">
-                <label className="input-label">Date</label>
-                <input type="date" className="input-field" />
+              <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="input-group">
+                  <label className="input-label">Start Date</label>
+                  <input type="date" required className="input-field" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">End Date</label>
+                  <input type="date" required className="input-field" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
+                </div>
+              </div>
+              <div className="input-group" style={{ marginTop: '1rem' }}>
+                <label className="input-label">Location (or "Remote")</label>
+                <input type="text" required className="input-field" placeholder="e.g. San Francisco, CA" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
               </div>
               <div className="input-group">
                 <label className="input-label">Description</label>
-                <textarea className="input-field" rows="4" placeholder="Describe the hackathon..."></textarea>
+                <textarea required className="input-field" rows="3" placeholder="Overview of the hackathon..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}></textarea>
               </div>
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Publish Hackathon</button>
+              <div className="input-group">
+                <label className="input-label">Rules / Judging Criteria</label>
+                <textarea className="input-field" rows="3" placeholder="Event rules..." value={formData.rules} onChange={e => setFormData({...formData, rules: e.target.value})}></textarea>
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Publish Hackathon</button>
             </form>
           </div>
         )}

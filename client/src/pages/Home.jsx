@@ -61,7 +61,7 @@ const Home = () => {
         if (p._id === projId) {
           return {
             ...p,
-            requiredDevs: p.requiredDevs.map(r => r._id === reqId ? { ...r, fulfilled: !r.fulfilled } : r)
+            requiredDevs: p.requiredDevs ? p.requiredDevs.map(r => r._id === reqId ? { ...r, fulfilled: !r.fulfilled } : r) : []
           };
         }
         return p;
@@ -164,7 +164,7 @@ const Home = () => {
                 </div>
                 <p style={{ color: 'var(--on-surface-variant)' }}>{h.description}</p>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {h.tags.map(tag => (
+                  {h.tags && h.tags.map(tag => (
                     <span key={tag} className="pill-tag">{tag}</span>
                   ))}
                 </div>
@@ -191,7 +191,7 @@ const Home = () => {
                   
                   <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--on-surface)' }}>Required Developers (Click to mark found)</h4>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                    {p.requiredDevs.map(r => (
+                    {p.requiredDevs && p.requiredDevs.map(r => (
                       <button 
                         key={r._id} 
                         className="pill-tag" 

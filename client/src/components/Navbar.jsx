@@ -25,8 +25,10 @@ const Navbar = () => {
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <Link to="/" style={{ color: 'var(--on-surface)', textDecoration: 'none', padding: '0.5rem', borderRadius: '0.5rem' }}>Dashboard</Link>
-        <Link to="/explore" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>Explore & Match</Link>
-        {token && (
+        {role !== 'organizer' && (
+          <Link to="/explore" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>Explore & Match</Link>
+        )}
+        {token && role !== 'organizer' && (
           <Link to="/history" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>History</Link>
         )}
         {role === 'organizer' && (
