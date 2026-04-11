@@ -6,7 +6,10 @@ const userSchema = new mongoose.Schema({
   password: { type: String }, // Optional for Google users
   googleId: { type: String },
   role: { type: String, enum: ['developer', 'organizer'], default: 'developer' },
-  skills: [{ type: String }],
+  skills: [{ 
+    type: String, 
+    set: (val) => val ? val.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase()) : val 
+  }],
   location: { type: String },
   phone: { type: String },
   trustScore: {

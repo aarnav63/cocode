@@ -4,7 +4,10 @@ const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   requiredDevs: [{
-    skill: String,
+    skill: { 
+      type: String, 
+      set: (val) => val ? val.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase()) : val 
+    },
     count: { type: Number, default: 1 },
     fulfilled: { type: Boolean, default: false }
   }],

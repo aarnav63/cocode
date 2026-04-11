@@ -9,6 +9,8 @@ const Explore = () => {
   const [devs, setDevs] = useState([]);
   const [skillFilter, setSkillFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [availableLocations, setAvailableLocations] = useState([]);
 
   // Fetch all projects (Hackathons and generic Projects)
   const fetchProjects = async () => {
@@ -62,6 +64,25 @@ const Explore = () => {
     if (activeTab === 'projects') fetchProjects();
     else fetchDevs();
   }, [activeTab]);
+
+  useEffect(() => {
+    const fetchDropdowns = async () => {
+      try {
+        const [skillsRes, locsRes] = await Promise.all([
+          axios.get('/api/users/skills'),
+          axios.get('/api/users/locations')
+        ]);
+        setAvailableSkills(skillsRes.data);
+        
+        const hardcodedCities = ["Remote", "Bangalore, India", "Mumbai, India", "New Delhi, India", "Hyderabad, India", "Pune, India", "Chennai, India", "Gurgaon, India", "Noida, India", "Ahmedabad, India", "Kolkata, India", "San Francisco, CA", "New York, NY", "London, UK", "Toronto, ON", "Berlin, Germany", "Seattle, WA"];
+        const uniqueLocs = Array.from(new Set([...locsRes.data, ...hardcodedCities]));
+        setAvailableLocations(uniqueLocs);
+      } catch (e) {
+        console.error('Error fetching dropdowns:', e);
+      }
+    };
+    fetchDropdowns();
+  }, []);
 
   return (
     <div>
@@ -137,9 +158,70 @@ const Explore = () => {
         </div>
       ) : (
         <div>
-          <div className="glass-panel" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', padding: '1rem' }}>
-            <input type="text" className="input-field" placeholder="Filter by Skill (e.g. React)" value={skillFilter} onChange={e => setSkillFilter(e.target.value)} />
-            <input type="text" className="input-field" placeholder="Filter by Location" value={locationFilter} onChange={e => setLocationFilter(e.target.value)} />
+          <div className="glass-panel" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', padding: '1rem', overflow: 'visible' }}>
+            
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="Filter by Skill (e.g. React)" 
+                autoComplete="off"
+                value={skillFilter} 
+                onChange={e => setSkillFilter(e.target.value)} 
+                style={{ width: '100%' }}
+              />
+              {(() => {
+                const filtered = availableSkills.filter(s => s.toLowerCase().includes(skillFilter.toLowerCase()) && skillFilter !== s);
+                if (filtered.length === 0 || skillFilter === '') return null;
+                return (
+                  <ul style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'rgba(20, 20, 20, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid var(--primary)', borderRadius: '8px', zIndex: 100, listStyle: 'none', padding: '0.5rem 0', margin: '0.25rem 0 0 0', maxHeight: '180px', overflowY: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.7)' }}>
+                    {filtered.map(s => (
+                      <li 
+                        key={s} 
+                        style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--on-surface)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}
+                        onMouseDown={() => setSkillFilter(s)}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.background = 'rgba(78, 222, 163, 0.1)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </div>
+            
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="Filter by Location" 
+                autoComplete="off"
+                value={locationFilter} 
+                onChange={e => setLocationFilter(e.target.value)} 
+                style={{ width: '100%' }}
+              />
+              {(() => {
+                const filtered = availableLocations.filter(c => c.toLowerCase().includes(locationFilter.toLowerCase()) && locationFilter !== c);
+                if (filtered.length === 0 || locationFilter === '') return null;
+                return (
+                  <ul style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'rgba(20, 20, 20, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid var(--primary)', borderRadius: '8px', zIndex: 100, listStyle: 'none', padding: '0.5rem 0', margin: '0.25rem 0 0 0', maxHeight: '180px', overflowY: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.7)' }}>
+                    {filtered.map(c => (
+                      <li 
+                        key={c} 
+                        style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--on-surface)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}
+                        onMouseDown={() => setLocationFilter(c)}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.background = 'rgba(78, 222, 163, 0.1)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </div>
+            
             <button className="btn btn-primary" onClick={fetchDevs}>Search</button>
           </div>
 

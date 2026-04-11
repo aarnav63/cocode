@@ -75,8 +75,72 @@ const Profile = () => {
         {isEditing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
             <div>
-              <label className="input-label" style={{ fontSize: '0.8rem' }}>Location</label>
-              <input type="text" className="input-field" value={editData.location} onChange={e => setEditData({...editData, location: e.target.value})} />
+              <label className="input-label" style={{ fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Location</span>
+                <span 
+                  style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: '0.75rem' }}
+                  onClick={() => {
+                    if (navigator.geolocation) {
+                      setEditData(prev => ({...prev, location: 'Fetching...'}));
+                      navigator.geolocation.getCurrentPosition(async (position) => {
+                        try {
+                          const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`);
+                          const addr = res.data.address;
+                          const city = addr.city || addr.town || addr.state_district || addr.region || addr.county || addr.suburb || addr.municipality || addr.village || 'Unknown Region';
+                          const state = addr.state || '';
+                          setEditData(prev => ({...prev, location: state ? `${city}, ${state}` : city}));
+                        } catch (err) {
+                           setEditData(prev => ({...prev, location: 'Error fetching location'}));
+                        }
+                      }, () => {
+                        setEditData(prev => ({...prev, location: 'Permission denied'}));
+                      });
+                    }
+                  }}
+                >
+                  📍 Auto-fetch GPS
+                </span>
+              </label>
+              
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={editData.location} 
+                  autoComplete="off"
+                  onChange={e => setEditData({...editData, location: e.target.value})}
+                />
+                
+                {isEditing && editData.location.length >= 0 && (
+                  <ul className="custom-dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--primary)', borderRadius: '8px', zIndex: 10, listStyle: 'none', padding: '0.5rem 0', margin: '0.25rem 0 0 0', maxHeight: '150px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', display: 'none' }}>
+                    {/* Handled mostly by CSS hover and state, but we can do it inline easily with onFocus */}
+                  </ul>
+                )}
+                
+                {/* Custom dropdown UI */}
+                <div className="location-autocomplete">
+                  {(() => {
+                    const allCities = ["Remote", "Bangalore, India", "Mumbai, India", "New Delhi, India", "Hyderabad, India", "Pune, India", "Chennai, India", "Gurgaon, India", "Noida, India", "Ahmedabad, India", "Kolkata, India", "San Francisco, CA", "New York, NY", "London, UK", "Toronto, ON", "Berlin, Germany", "Seattle, WA"];
+                    const filtered = allCities.filter(c => c.toLowerCase().includes(editData.location.toLowerCase()) && editData.location !== c);
+                    if (filtered.length === 0 || editData.location === '') return null;
+                    return (
+                      <ul style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'rgba(20, 20, 20, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid var(--primary)', borderRadius: '8px', zIndex: 10, listStyle: 'none', padding: '0.5rem 0', margin: '0.25rem 0 0 0', maxHeight: '180px', overflowY: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.7)' }}>
+                        {filtered.map(c => (
+                          <li 
+                            key={c} 
+                            style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--on-surface)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}
+                            onMouseDown={() => setEditData({...editData, location: c})}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.background = 'rgba(78, 222, 163, 0.1)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  })()}
+                </div>
+              </div>
             </div>
             <div>
               <label className="input-label" style={{ fontSize: '0.8rem' }}>Phone</label>

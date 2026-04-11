@@ -7,7 +7,7 @@ export const getDevelopers = async (req, res) => {
     let query = { role: 'developer' };
 
     if (skill) {
-      query.skills = { $in: [skill] };
+      query.skills = { $regex: new RegExp(`^${skill}$`, 'i') };
     }
     if (location) {
       query.location = new RegExp(location, 'i');
@@ -15,6 +15,24 @@ export const getDevelopers = async (req, res) => {
 
     const developers = await User.find(query).select('-password');
     res.json(developers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUniqueSkills = async (req, res) => {
+  try {
+    const skills = await User.distinct('skills', { role: 'developer' });
+    res.json(skills.filter(s => s));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUniqueLocations = async (req, res) => {
+  try {
+    const locations = await User.distinct('location', { role: 'developer' });
+    res.json(locations.filter(l => l));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
