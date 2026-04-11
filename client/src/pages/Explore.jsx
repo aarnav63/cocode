@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const Explore = () => {
@@ -47,12 +48,13 @@ const Explore = () => {
   // Fetch developers based on filters
   const fetchDevs = async () => {
     try {
+      const currentUserId = localStorage.getItem('userId');
       const query = new URLSearchParams();
       if (skillFilter) query.append('skill', skillFilter);
       if (locationFilter) query.append('location', locationFilter);
       
       const res = await axios.get(`http://localhost:5000/api/users/developers?${query.toString()}`);
-      setDevs(res.data);
+      setDevs(res.data.filter(dev => dev._id !== currentUserId));
     } catch (e) { console.error(e); }
   };
 
@@ -129,7 +131,9 @@ const Explore = () => {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
                   {dev.skills.map(s => <span key={s} className="pill-tag">{s}</span>)}
                 </div>
-                <button className="btn btn-outline" style={{ width: '100%' }}>View Profile</button>
+                <Link to={`/profile/${dev._id}`} className="btn btn-outline" style={{ width: '100%', display: 'inline-flex', justifyContent: 'center' }}>
+                  View Profile
+                </Link>
               </div>
             ))}
             {devs.length === 0 && <p style={{ color: 'var(--on-surface-variant)' }}>No developers found. Try adjusting filters.</p>}

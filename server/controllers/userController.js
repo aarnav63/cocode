@@ -27,6 +27,10 @@ export const getUserStats = async (req, res) => {
 
     res.json({
       name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      location: user.location,
       skills: user.skills,
       trustScore: user.trustScore,
       hackathonsParticipated: user.hackathonsParticipated.length

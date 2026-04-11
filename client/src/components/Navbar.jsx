@@ -18,9 +18,9 @@ const Navbar = () => {
     <nav className="sidebar">
       <Link to="/" style={{ textDecoration: 'none', marginBottom: '3rem' }}>
         <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', color: 'var(--primary)' }}>
-          DevCollab
+          CoCode
         </h2>
-        <span style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', letterSpacing: '0.05em' }}>THE NEON SANCTUM</span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', letterSpacing: '0.05em' }}>Code Collab Conquer</span>
       </Link>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

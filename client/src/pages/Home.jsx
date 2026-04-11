@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const Home = () => {
   const role = localStorage.getItem('role');
+  const [userName, setUserName] = useState('');
   
   const [hackathons, setHackathons] = useState([]);
   const [myProjects, setMyProjects] = useState([]);
@@ -18,6 +19,12 @@ const Home = () => {
       .catch(err => console.error('Error fetching hackathons:', err));
 
     const token = localStorage.getItem('token');
+    if (token) {
+      axios.get('http://localhost:5000/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => setUserName(res.data.name || ''))
+        .catch(() => setUserName(''));
+    }
+
     if (token && role !== 'organizer') {
       axios.get('http://localhost:5000/api/projects/me', { headers: { Authorization: `Bearer ${token}` } })
         .then(res => setMyProjects(res.data))
@@ -25,12 +32,12 @@ const Home = () => {
     }
   }, [role]);
 
-  const toggleFulfilled = async (projId, reqId) => {
+  const acceptRequest = async (projId, userId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/projects/${projId}/fulfill/${reqId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`http://localhost:5000/api/projects/${projId}/accept/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
       window.location.reload();
-    } catch(err) { alert('Error: ' + err.message); }
+    } catch(err) { alert('Error accepting request: ' + err.message); }
   };
 
   const handleCreateProject = async (e) => {
@@ -93,9 +100,11 @@ const Home = () => {
 
       <header style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '3rem', color: 'var(--on-surface)' }}>Welcome back to the Grid.</h1>
+          <h1 style={{ fontSize: '3rem', color: 'var(--on-surface)' }}>
+            Welcome back{userName ? `, ${userName}` : ''}
+          </h1>
           <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.1rem' }}>
-            Your latest connections and active events are synchronized.
+            What are you building today?
           </p>
         </div>
         {role !== 'organizer' && (
@@ -129,28 +138,6 @@ const Home = () => {
             ))}
           </div>
         </section>
-
-        <aside className="glass-panel-floating" style={{ padding: '2rem', alignSelf: 'start' }}>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: 'var(--on-surface)' }}>Trust Score Overview</h3>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ fontSize: '3.5rem', fontFamily: 'var(--font-display)', background: 'linear-gradient(135deg, var(--secondary), #00a572)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>
-              4.8
-            </div>
-            <p style={{ color: 'var(--secondary)', fontSize: '0.875rem', fontWeight: 600 }}>Top 5% Reliability</p>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: 'var(--on-surface-variant)' }}>Active Team</span>
-              </div>
-              <div className="glass-panel" style={{ padding: '1rem', border: 'none', background: 'var(--surface-lowest)' }}>
-                <div style={{ fontWeight: 600 }}>Vector Forge</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}>3 Tasks Pending</div>
-              </div>
-            </div>
-          </div>
-        </aside>
       </div>
       <section style={{ marginTop: '3rem' }}>
         {role !== 'organizer' && myProjects.length > 0 && (
@@ -162,21 +149,46 @@ const Home = () => {
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{p.title}</h3>
                   <p style={{ color: 'var(--on-surface-variant)', marginBottom: '1rem' }}>{p.description}</p>
                   
-                  <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--on-surface)' }}>Required Developers (Click to mark found)</h4>
+                  <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--on-surface)' }}>Required Developers</h4>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                     {p.requiredDevs.map(r => (
-                      <button key={r._id} onClick={() => toggleFulfilled(p._id, r._id)} className="pill-tag" style={{ border: 'none', cursor: 'pointer', background: r.fulfilled ? 'var(--surface-container)' : 'var(--surface-highest)', textDecoration: r.fulfilled ? 'line-through': 'none', opacity: r.fulfilled ? 0.5 : 1 }}>
+                      <span key={r._id} className="pill-tag" style={{ background: r.fulfilled ? 'var(--surface-container)' : 'var(--surface-highest)', textDecoration: r.fulfilled ? 'line-through': 'none', opacity: r.fulfilled ? 0.5 : 1 }}>
                         {r.count}x {r.skill}
-                      </button>
+                      </span>
                     ))}
                   </div>
+                  <button
+                    className="btn btn-outline"
+                    style={{ marginBottom: '1rem', width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.put(`http://localhost:5000/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                        window.location.reload();
+                      } catch (err) {
+                        alert('Error marking developers found: ' + err.message);
+                      }
+                    }}
+                  >
+                    Developers Found
+                  </button>
 
                   <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--on-surface)' }}>Pending Requests to Join</h4>
                   {p.requests && p.requests.length > 0 ? (
                     p.requests.map(req => (
-                      <div key={req._id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'var(--surface-lowest)', borderRadius: '8px', marginBottom: '0.5rem' }}>
-                        <span>{req.name} ({req.role})</span>
-                        <button className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>Accept</button>
+                      <div key={req._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: 'var(--surface-lowest)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{req.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>{req.role}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <Link to={`/profile/${req._id}`} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
+                            View Profile
+                          </Link>
+                          <button onClick={() => acceptRequest(p._id, req._id)} className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
+                            Accept
+                          </button>
+                        </div>
                       </div>
                     ))
                   ) : <p style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>No developers have requested to join yet.</p>}

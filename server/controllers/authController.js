@@ -77,3 +77,80 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+import { OAuth2Client } from 'google-auth-library';
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { access_token } = req.body;
+    
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info from Google');
+    }
+    
+    const payload = await response.json();
+    const { email, name, sub: googleId } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+      return res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
+      });
+    } else {
+      return res.json({
+        requireOnboarding: true,
+        email,
+        name,
+        googleId,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error verifying Google token', error: error.message });
+  }
+};
+
+export const completeGoogleProfile = async (req, res) => {
+  try {
+    const { email, name, googleId, phone, location, skills, role } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      googleId,
+      role: role || 'developer',
+      skills: skills || [],
+      location,
+      phone,
+      trustScore: { communication: 0, leadership: 0, reliability: 0, totalRatings: 0 }
+    });
+
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

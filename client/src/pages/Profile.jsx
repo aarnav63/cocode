@@ -21,7 +21,9 @@ const Profile = () => {
           ...res.data,
           role: res.data.role || 'Full-Stack Developer',
           location: res.data.location || 'Remote',
-          skills: res.data.skills?.length ? res.data.skills : ['React', 'Node.js', 'MongoDB'],
+          email: res.data.email || '',
+          phone: res.data.phone || '',
+          skills: res.data.skills || [],
           trustScore: res.data.trustScore || { communication: 0, leadership: 0, reliability: 0, totalRatings: 0 },
           hackathonsParticipated: res.data.hackathonsParticipated?.length || 0
         });
@@ -48,6 +50,16 @@ const Profile = () => {
         <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
           📍 {user.location}
         </p>
+        {user.email && (
+          <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
+            ✉️ {user.email}
+          </p>
+        )}
+        {user.phone && (
+          <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
+            📞 {user.phone}
+          </p>
+        )}
         
         <hr style={{ borderColor: 'var(--outline-variant)', margin: '1.5rem 0' }} />
         
