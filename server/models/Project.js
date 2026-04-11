@@ -10,6 +10,7 @@ const projectSchema = new mongoose.Schema({
   }],
   creatorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   isOpen: { type: Boolean, default: true },
+  isFinished: { type: Boolean, default: false },
   requests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   collaborators: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   rejected: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

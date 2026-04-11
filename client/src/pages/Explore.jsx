@@ -18,9 +18,10 @@ const Explore = () => {
         axios.get('/api/projects')
       ]);
       const formattedHacks = hacksRes.data.map(h => ({ ...h, type: 'Hackathon', required: [], creatorId: h.organizerId }));
-      const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId, collaborators: p.collaborators || [] }));
+      const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId, collaborators: p.collaborators || [], rejected: p.rejected || [] }));
       
-      setProjects([...formattedHacks, ...formattedProjects]);
+      const currentUserId = localStorage.getItem('userId');
+      setProjects([...formattedHacks, ...formattedProjects].filter(p => !p.rejected?.includes(currentUserId)));
     } catch (e) {
       console.error('Error fetching projects:', e);
       setProjects([]);

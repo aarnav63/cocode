@@ -254,21 +254,40 @@ const Home = () => {
                     ))
                   ) : <p style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', marginBottom: '1rem' }}>No developers have requested to join yet.</p>}
 
-                  <button
-                    className="btn btn-outline"
-                    style={{ marginTop: '1rem', width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}
-                    onClick={async () => {
-                      try {
-                        const token = localStorage.getItem('token');
-                        const res = await axios.put(`/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
-                        setMyProjects(myProjects.map(proj => proj._id === p._id ? { ...proj, isOpen: res.data.isOpen } : proj));
-                      } catch (err) {
-                        console.error('Error toggling project status: ', err);
-                      }
-                    }}
-                  >
-                    {p.isOpen ? 'Close Project' : 'Reopen Project'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <button
+                      className="btn btn-outline"
+                      style={{ flex: 1, padding: '0.75rem', fontSize: '0.95rem' }}
+                      onClick={async () => {
+                        try {
+                          const token = localStorage.getItem('token');
+                          const res = await axios.put(`/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                          setMyProjects(myProjects.map(proj => proj._id === p._id ? { ...proj, isOpen: res.data.isOpen } : proj));
+                        } catch (err) {
+                          console.error('Error toggling project status: ', err);
+                        }
+                      }}
+                    >
+                      {p.isOpen ? 'Close Project' : 'Reopen Project'}
+                    </button>
+                    
+                    <button
+                      className="btn btn-primary"
+                      style={{ flex: 1, padding: '0.75rem', fontSize: '0.95rem', background: '#ff6b6b', borderColor: '#ff6b6b', color: 'var(--background)' }}
+                      onClick={async () => {
+                        try {
+                          if(!window.confirm('Are you certain? This will permanent move the project to History.')) return;
+                          const token = localStorage.getItem('token');
+                          await axios.put(`/api/projects/${p._id}/finish`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                          setMyProjects(myProjects.filter(proj => proj._id !== p._id));
+                        } catch (err) {
+                          console.error('Error finishing project: ', err);
+                        }
+                      }}
+                    >
+                      Finish Project
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

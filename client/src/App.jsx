@@ -7,6 +7,7 @@ import HackathonDetails from './pages/HackathonDetails';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import Login from './pages/Login';
 import Explore from './pages/Explore';
+import History from './pages/History';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
@@ -23,6 +24,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/explore" element={<Explore />} />
+                <Route path="/history" element={<History />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/profile/:id" element={<Profile />} />
                 <Route path="/hackathon/:id" element={<HackathonDetails />} />

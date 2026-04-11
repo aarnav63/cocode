@@ -42,7 +42,7 @@ export const completeProject = async (req, res) => {
 
 export const getMyProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ creatorId: req.user._id })
+    const projects = await Project.find({ creatorId: req.user._id, isFinished: false })
       .populate('requests', 'name role skills email phone')
       .populate('collaborators', 'name role skills email phone');
     res.json(projects);
@@ -53,12 +53,46 @@ export const getMyProjects = async (req, res) => {
 
 export const getJoinedProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ collaborators: req.user._id })
+    const projects = await Project.find({ collaborators: req.user._id, isFinished: false })
       .populate('creatorId', 'name email')
       .populate('collaborators', 'name role skills email phone');
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching joined projects', error: error.message });
+  }
+};
+
+export const getHistoryProjects = async (req, res) => {
+  try {
+    const projects = await Project.find({ 
+      isFinished: true,
+      $or: [
+        { creatorId: req.user._id },
+        { collaborators: req.user._id }
+      ]
+    })
+      .populate('creatorId', 'name email location')
+      .populate('collaborators', 'name role skills email phone');
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching history', error: error.message });
+  }
+};
+
+export const finishProject = async (req, res) => {
+  try {
+    const { projId } = req.params;
+    const project = await Project.findById(projId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (project.creatorId.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized' });
+
+    project.isFinished = true;
+    project.isOpen = false;
+    await project.save();
+
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: 'Error finishing project', error: error.message });
   }
 };
 
