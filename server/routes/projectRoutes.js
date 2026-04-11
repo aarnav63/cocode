@@ -1,10 +1,11 @@
 import express from 'express';
-import { createProject, getProjects, getMyProjects, acceptRequest, completeProject, fulfillRequirement, requestToJoin } from '../controllers/projectController.js';
+import { createProject, getProjects, getMyProjects, acceptRequest, completeProject, fulfillRequirement, requestToJoin, getJoinedProjects } from '../controllers/projectController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.get('/me', protect, getMyProjects);
+router.get('/joined', protect, getJoinedProjects);
 router.post('/', protect, createProject);
 router.get('/', getProjects);
 router.put('/:projId/accept/:userId', protect, acceptRequest);

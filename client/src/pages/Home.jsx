@@ -8,6 +8,7 @@ const Home = () => {
   
   const [hackathons, setHackathons] = useState([]);
   const [myProjects, setMyProjects] = useState([]);
+  const [joinedProjects, setJoinedProjects] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -29,6 +30,10 @@ const Home = () => {
       axios.get('/api/projects/me', { headers: { Authorization: `Bearer ${token}` } })
         .then(res => setMyProjects(res.data))
         .catch(err => console.error('Error fetching my projects', err));
+
+      axios.get('/api/projects/joined', { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => setJoinedProjects(res.data))
+        .catch(err => console.error('Error fetching joined projects', err));
     }
   }, [role]);
 
@@ -44,7 +49,6 @@ const Home = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      // Parse string "1 react, 2 designer"
       const devsArray = requiredDevs.split(',').map(s => {
         let count = 1;
         let skill = s.trim();
@@ -63,7 +67,6 @@ const Home = () => {
       alert('Project created successfully!');
       setShowModal(false);
       setTitle(''); setDescription(''); setRequiredDevs('');
-      // Force refresh to fetch latest
       window.location.reload();
     } catch (err) {
       alert('Error creating project: ' + err.message);
@@ -87,7 +90,7 @@ const Home = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">Devs Needed (Comma separated skills)</label>
-                <input type="text" className="input-field" placeholder="e.g. React Native, UI/UX" value={requiredDevs} onChange={e => setRequiredDevs(e.target.value)} required />
+                <input type="text" className="input-field" placeholder="e.g. 1 React, 2 Node" value={requiredDevs} onChange={e => setRequiredDevs(e.target.value)} required />
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Submit</button>
@@ -139,6 +142,7 @@ const Home = () => {
           </div>
         </section>
       </div>
+
       <section style={{ marginTop: '3rem' }}>
         {role !== 'organizer' && myProjects.length > 0 && (
           <>
@@ -157,21 +161,26 @@ const Home = () => {
                       </span>
                     ))}
                   </div>
-                  <button
-                    className="btn btn-outline"
-                    style={{ marginBottom: '1rem', width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}
-                    onClick={async () => {
-                      try {
-                        const token = localStorage.getItem('token');
-                        await axios.put(`/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
-                        window.location.reload();
-                      } catch (err) {
-                        alert('Error marking developers found: ' + err.message);
-                      }
-                    }}
-                  >
-                    Developers Found
-                  </button>
+
+                  {/* ACCEPTED COLLABORATORS SECTION */}
+                  {p.collaborators && p.collaborators.length > 0 && (
+                    <>
+                      <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--secondary)' }}>Accepted Collaborators</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                        {p.collaborators.map(collab => (
+                          <div key={collab._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: 'rgba(78, 222, 163, 0.1)', border: '1px solid var(--secondary)', borderRadius: '8px' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: 'var(--secondary)' }}>{collab.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>{collab.email} • {collab.phone}</div>
+                            </div>
+                            <Link to={`/profile/${collab._id}`} className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', background: 'var(--secondary)', color: 'var(--background)' }}>
+                              View Profile
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
 
                   <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--on-surface)' }}>Pending Requests to Join</h4>
                   {p.requests && p.requests.length > 0 ? (
@@ -191,13 +200,53 @@ const Home = () => {
                         </div>
                       </div>
                     ))
-                  ) : <p style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>No developers have requested to join yet.</p>}
+                  ) : <p style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', marginBottom: '1rem' }}>No developers have requested to join yet.</p>}
+
+                  <button
+                    className="btn btn-outline"
+                    style={{ marginTop: '1rem', width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.put(`/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                        window.location.reload();
+                      } catch (err) {
+                        alert('Error marking developers found: ' + err.message);
+                      }
+                    }}
+                  >
+                    Developers Found (Close Project)
+                  </button>
                 </div>
               ))}
             </div>
           </>
         )}
       </section>
+
+      {/* NEW SECTION: PROJECTS I'VE JOINED */}
+      <section style={{ marginTop: '3rem', paddingBottom: '2rem' }}>
+        {role !== 'organizer' && joinedProjects.length > 0 && (
+          <>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', marginTop: '2rem' }}>Projects I've Joined</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {joinedProjects.map(p => (
+                <div key={p._id} className="glass-panel" style={{ border: '1px solid var(--secondary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <span className="pill-tag success" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>✓ Request Accepted</span>
+                      <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: 'var(--secondary)' }}>{p.title}</h3>
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Led by: {p.creatorId?.name}</span>
+                  </div>
+                  <p style={{ color: 'var(--on-surface-variant)', marginTop: '0.5rem' }}>{p.description}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+
     </div>
   );
 };

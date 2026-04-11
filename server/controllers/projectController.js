@@ -42,10 +42,21 @@ export const completeProject = async (req, res) => {
 
 export const getMyProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ creatorId: req.user._id }).populate('requests', 'name role skills email phone');
+    const projects = await Project.find({ creatorId: req.user._id })
+      .populate('requests', 'name role skills email phone')
+      .populate('collaborators', 'name role skills email phone');
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching my projects', error: error.message });
+  }
+};
+
+export const getJoinedProjects = async (req, res) => {
+  try {
+    const projects = await Project.find({ collaborators: req.user._id }).populate('creatorId', 'name email');
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching joined projects', error: error.message });
   }
 };
 
@@ -65,7 +76,9 @@ export const acceptRequest = async (req, res) => {
     project.requests.splice(requestIndex, 1);
     await project.save();
 
-    const updatedProject = await Project.findById(projId).populate('requests', 'name role skills email phone');
+    const updatedProject = await Project.findById(projId)
+      .populate('requests', 'name role skills email phone')
+      .populate('collaborators', 'name role skills email phone');
     res.json(updatedProject);
   } catch (error) {
     res.status(500).json({ message: 'Error accepting request', error: error.message });
