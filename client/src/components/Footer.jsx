@@ -20,7 +20,7 @@ const Footer = () => {
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <p style={{ margin: 0, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>
           Made with ❤️ by 
-          <span style={{ fontWeight: 'bold', color: 'var(--primary)', marginLeft: '4px' }}>Aarnav</span>
+          <span style={{ fontWeight: 'bold', color: 'var(--primary)', marginLeft: '4px' }}>ByteCrew</span>
         </p>
         
         <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>

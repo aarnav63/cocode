@@ -146,7 +146,7 @@ const Login = () => {
               <div style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--on-surface-variant)', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p>Organizations cannot register directly.</p>
                 <p style={{ marginTop: '0.5rem' }}>Please contact dev to set up an organizer account.</p>
-                <a href="mailto:admin@cocode.com" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block' }}>Contact Dev</a>
+                <a href="mailto:bajajaarnav8@gmail.com" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block' }}>Contact Dev</a>
               </div>
             ) : (
               <>
