@@ -20,7 +20,7 @@ export const createProject = async (req, res) => {
 
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ isOpen: true }).populate('creatorId', 'name location');
+    const projects = await Project.find({ isOpen: true, hackathonId: { $exists: false } }).populate('creatorId', 'name location');
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching projects', error: error.message });
@@ -200,5 +200,43 @@ export const requestToJoin = async (req, res) => {
     res.json(project);
   } catch (error) {
     res.status(500).json({ message: 'Error requesting to join', error: error.message });
+  }
+};
+
+export const leaveProject = async (req, res) => {
+  try {
+    const { projId } = req.params;
+    const project = await Project.findById(projId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (project.creatorId.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Team owner cannot leave the team. Delete it instead.' });
+    }
+
+    if (!project.collaborators.includes(req.user._id)) {
+      return res.status(400).json({ message: 'You are not a member of this team.' });
+    }
+
+    project.collaborators = project.collaborators.filter(c => c.toString() !== req.user._id.toString());
+    await project.save();
+
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: 'Error leaving team', error: error.message });
+  }
+};
+
+export const deleteProject = async (req, res) => {
+  try {
+    const { projId } = req.params;
+    const project = await Project.findById(projId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (!req.user) return res.status(401).json({ message: 'Not authorized' });
+    if (project.creatorId.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized' });
+
+    await Project.findByIdAndDelete(projId);
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Delete project error:', error);
+    res.status(500).json({ message: 'Error deleting project', error: error.message });
   }
 };

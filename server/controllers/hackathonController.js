@@ -44,7 +44,11 @@ export const getHackathonById = async (req, res) => {
     if (!hackathon) return res.status(404).json({ message: 'Hackathon not found' });
 
     // Projects bound to this hackathon act as its teams
-    const teams = await Project.find({ hackathonId: req.params.id }).populate('creatorId', 'name').lean();
+    const teams = await Project.find({ hackathonId: req.params.id })
+      .populate('creatorId', 'name')
+      .populate('requests', 'name role skills email phone')
+      .populate('collaborators', 'name role skills email phone')
+      .lean();
     
     res.json({ ...hackathon.toObject(), teams });
   } catch (error) {

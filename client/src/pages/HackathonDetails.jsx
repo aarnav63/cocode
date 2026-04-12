@@ -45,11 +45,51 @@ const HackathonDetails = () => {
     }
   };
 
+  const handleLeaveTeam = async (teamId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/projects/${teamId}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetchDetails();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAcceptRequest = async (teamId, userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/projects/${teamId}/accept/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetchDetails();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRejectRequest = async (teamId, userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/projects/${teamId}/reject/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetchDetails();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteTeam = async (teamId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/projects/${teamId}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchDetails();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!hackathon) return <div style={{ textAlign: 'center', marginTop: '4rem' }}>Loading Event...</div>;
 
   const currentUserId = localStorage.getItem('userId');
   const myTeam = hackathon?.teams?.find(team => team.creatorId === currentUserId || (team.creatorId && team.creatorId._id === currentUserId));
-  const displayedTeams = myTeam ? [myTeam] : (hackathon?.teams || []);
+  const displayedTeams = hackathon?.teams || [];
 
   return (
     <div className="glass-panel">
@@ -87,7 +127,9 @@ const HackathonDetails = () => {
                <div key={team._id} style={{ background: 'var(--background)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <strong style={{ color: 'var(--on-surface)' }}>{team.title || 'Anonymous Team'}</strong>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>({team.collaborators?.length || 0} Members)</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>
+                    ({1 + (team.collaborators?.length || 0)} Member{1 + (team.collaborators?.length || 0) === 1 ? '' : 's'})
+                  </span>
                 </div>
                 <p style={{ fontSize: '0.875rem', color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>
                   {team.description}
@@ -99,20 +141,71 @@ const HackathonDetails = () => {
                     </span>
                   ))}
                 </div>
-                {team.creatorId?._id !== localStorage.getItem('userId') && (
-                  (() => {
-                    const isRequested = (team.requests || []).includes(localStorage.getItem('userId'));
-                    const isCollaborator = team.collaborators && team.collaborators.includes(localStorage.getItem('userId'));
+                {(() => {
+                  const isOwner = team.creatorId?._id === currentUserId || team.creatorId === currentUserId;
+                  const isRequested = (team.requests || []).some(reqId => reqId === currentUserId || reqId?._id === currentUserId);
+                  const isCollaborator = team.collaborators && team.collaborators.some(collab => collab === currentUserId || collab?._id === currentUserId);
 
-                    if (isCollaborator) return <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: '100%', opacity: 0.5 }} disabled>Joined</button>;
-                    if (isRequested) return <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: '100%', opacity: 0.5 }} disabled>Requested</button>;
-                    
-                    return <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: '100%' }} onClick={() => handleRequestJoin(team._id)}>Request to Join</button>;
-                  })()
-                )}
-                {team.creatorId?._id === localStorage.getItem('userId') && (
-                  <span style={{ color: 'var(--primary)', fontSize: '0.875rem', display: 'block', textAlign: 'center' }}>Your Team</span>
-                )}
+                  if (isOwner) {
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ background: 'rgba(98, 168, 255, 0.08)', border: '1px solid rgba(98, 168, 255, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
+                          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--primary)' }}>Pending Requests</h4>
+                          {team.requests && team.requests.length > 0 ? (
+                            team.requests.map(req => {
+                              const requestUserId = req._id || req;
+                              return (
+                                <div key={requestUserId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                  <div>
+                                    <div style={{ color: 'var(--on-surface)', fontWeight: 600 }}>{req.name || 'Pending Developer'}</div>
+                                    {req.role && <div style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>{req.role}</div>}
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button className="btn btn-primary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }} onClick={() => handleAcceptRequest(team._id, requestUserId)}>
+                                      Accept
+                                    </button>
+                                    <button className="btn btn-outline" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderColor: '#ff6b6b', color: '#ff6b6b' }} onClick={() => handleRejectRequest(team._id, requestUserId)}>
+                                      Reject
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>No pending requests yet.</p>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <button className="btn btn-danger" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', flex: 1 }} onClick={() => handleDeleteTeam(team._id)}>
+                            Delete Team
+                          </button>
+                          <span style={{ color: 'var(--primary)', fontSize: '0.875rem', display: 'block', textAlign: 'center', flex: 1, alignSelf: 'center' }}>
+                            Your Team
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (isCollaborator) {
+                    return (
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', flex: 1 }} onClick={() => handleLeaveTeam(team._id)}>
+                          Leave Team
+                        </button>
+                        <span style={{ color: 'var(--primary)', fontSize: '0.875rem', display: 'block', textAlign: 'center', flex: 1, alignSelf: 'center' }}>
+                          Joined
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  if (isRequested) {
+                    return <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: '100%', opacity: 0.5 }} disabled>Requested</button>;
+                  }
+
+                  return <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: '100%' }} onClick={() => handleRequestJoin(team._id)}>Request to Join</button>;
+                })()}
               </div>
             )) : <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.875rem' }}>No open teams currently listed.</p>}
           </div>

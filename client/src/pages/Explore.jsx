@@ -12,11 +12,13 @@ const Explore = () => {
   const [availableSkills, setAvailableSkills] = useState([]);
   const [availableLocations, setAvailableLocations] = useState([]);
 
-  // Fetch all projects (Hackathons and generic Projects)
+  // Fetch all generic projects only (hackathon teams are excluded)
   const fetchProjects = async () => {
     try {
       const projRes = await axios.get('/api/projects');
-      const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId, collaborators: p.collaborators || [], rejected: p.rejected || [] }));
+      const formattedProjects = projRes.data
+        .filter(p => !p.hackathonId)
+        .map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId, collaborators: p.collaborators || [], rejected: p.rejected || [] }));
       
       const currentUserId = localStorage.getItem('userId');
       setProjects(formattedProjects.filter(p => !p.rejected?.includes(currentUserId)));
