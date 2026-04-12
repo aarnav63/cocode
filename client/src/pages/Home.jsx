@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+const formatDateStr = (dateString) => {
+  if (!dateString) return 'Invalid Date';
+  const dt = new Date(dateString);
+  if (isNaN(dt.getTime())) return 'Invalid Date';
+  return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
+};
+
 const Home = () => {
   const role = localStorage.getItem('role');
   const [userName, setUserName] = useState('');
@@ -156,11 +163,19 @@ const Home = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{h.title}</h3>
-                    <p style={{ color: 'var(--primary)', fontSize: '0.875rem' }}>{new Date(h.date).toDateString()}</p>
+                    <p style={{ color: 'var(--primary)', fontSize: '0.875rem' }}>
+                      {formatDateStr(h.startDate)} - {formatDateStr(h.endDate)}
+                    </p>
                   </div>
-                  <Link to={`/hackathon/${h._id}`} className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.5rem 1rem' }}>
-                    Inspect
-                  </Link>
+                  {role === 'organizer' && (h.organizerId === localStorage.getItem('userId') || (h.organizerId && h.organizerId._id === localStorage.getItem('userId'))) ? (
+                    <Link to={`/hackathon/${h._id}`} className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.5rem 1.25rem', borderColor: '#f39c12', color: '#f39c12', borderRadius: '8px', letterSpacing: '0.5px' }}>
+                      Edit Event
+                    </Link>
+                  ) : (
+                    <Link to={`/hackathon/${h._id}`} className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.5rem 1.25rem', borderRadius: '8px', background: 'var(--primary)', color: 'var(--on-primary)', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', letterSpacing: '0.5px', fontWeight: '500' }}>
+                      View Details
+                    </Link>
+                  )}
                 </div>
                 <p style={{ color: 'var(--on-surface-variant)' }}>{h.description}</p>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>

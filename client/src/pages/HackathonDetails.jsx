@@ -47,6 +47,10 @@ const HackathonDetails = () => {
 
   if (!hackathon) return <div style={{ textAlign: 'center', marginTop: '4rem' }}>Loading Event...</div>;
 
+  const currentUserId = localStorage.getItem('userId');
+  const myTeam = hackathon?.teams?.find(team => team.creatorId === currentUserId || (team.creatorId && team.creatorId._id === currentUserId));
+  const displayedTeams = myTeam ? [myTeam] : (hackathon?.teams || []);
+
   return (
     <div className="glass-panel">
       <h1 style={{ marginBottom: '0.5rem' }}>{hackathon.title}</h1>
@@ -65,13 +69,21 @@ const HackathonDetails = () => {
           <div className="glass-panel" style={{ background: 'var(--surface-lowest)', border: 'none' }}>
             <h3 style={{ marginBottom: '1.5rem', color: 'var(--on-surface)' }}>Join the Action</h3>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button className="btn btn-primary" style={{ flex: 1, marginBottom: '1rem' }} onClick={() => setShowCreateModal(true)}>Create Team</button>
+              {myTeam ? (
+                <button className="btn btn-outline" style={{ flex: 1, marginBottom: '1rem', opacity: 0.5, cursor: 'not-allowed' }} disabled>
+                  You already created a team for this event
+                </button>
+              ) : (
+                <button className="btn btn-primary" style={{ flex: 1, marginBottom: '1rem' }} onClick={() => setShowCreateModal(true)}>
+                  Create Team
+                </button>
+              )}
             </div>
             
             <hr style={{ borderColor: 'var(--outline-variant)', margin: '1.5rem 0' }} />
             
             <h4 style={{ marginBottom: '1rem', color: 'var(--on-surface)' }}>Teams looking for members</h4>
-            {hackathon.teams && hackathon.teams.length > 0 ? hackathon.teams.map(team => (
+            {displayedTeams.length > 0 ? displayedTeams.map(team => (
                <div key={team._id} style={{ background: 'var(--background)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <strong style={{ color: 'var(--on-surface)' }}>{team.title || 'Anonymous Team'}</strong>
