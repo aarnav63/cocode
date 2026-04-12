@@ -80,15 +80,15 @@ const Login = () => {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', textAlign: 'center', padding: '2.5rem 2rem' }}>
-        <h2 style={{ marginBottom: '2rem', fontSize: '1.8rem', fontWeight: 'bold' }}>
-          {requireOnboarding ? 'Complete Your Profile' : 'Welcome to DevCollab'}
-        </h2>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '450px', textAlign: 'center', padding: '3rem 2.5rem' }}>
         
         {!requireOnboarding ? (
           <div>
-            <p style={{ color: 'var(--on-surface-variant)', marginBottom: '2rem' }}>
-              Sign in or create an account instantly using Google.
+            <h1 style={{ fontFamily: 'var(--font-display)', color: 'var(--primary)', fontSize: '3.5rem', margin: '0 0 0.5rem 0' }}>
+              CoCode
+            </h1>
+            <p style={{ color: 'var(--on-surface-variant)', marginBottom: '3rem', fontSize: '1.1rem', letterSpacing: '0.05em' }}>
+              Collab, Code and Conquer
             </p>
             <button 
               onClick={() => handleGoogleLogin()} 
@@ -124,6 +124,9 @@ const Login = () => {
           </div>
         ) : (
           <form style={{ textAlign: 'left' }} onSubmit={handleSubmitProfile}>
+            <h2 style={{ marginBottom: '2rem', fontSize: '1.8rem', fontWeight: 'bold', textAlign: 'center' }}>
+              Complete Your Profile
+            </h2>
             <div className="input-group">
               <label className="input-label">Full Name</label>
               <input type="text" className="input-field" value={name} onChange={e => setName(e.target.value)} required disabled />
