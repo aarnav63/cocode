@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
 
@@ -14,6 +15,20 @@ const Navbar = () => {
     window.location.reload();
   };
 
+  const getLinkStyle = (path) => {
+    const isActive = location.pathname === path || (path === '/profile/me' && location.pathname.startsWith('/profile/'));
+    return {
+      color: isActive ? 'var(--primary)' : 'var(--on-surface-variant)',
+      background: isActive ? 'rgba(78, 222, 163, 0.1)' : 'transparent',
+      textDecoration: 'none',
+      padding: '0.75rem 1rem',
+      borderRadius: '8px',
+      fontWeight: isActive ? 600 : 400,
+      transition: 'all 0.2s ease',
+      display: 'block'
+    };
+  };
+
   return (
     <nav className="sidebar">
       <Link to="/" style={{ textDecoration: 'none', marginBottom: '3rem' }}>
@@ -23,19 +38,19 @@ const Navbar = () => {
         <span style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500 }}>Code Collab Conquer</span>
       </Link>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Link to="/" style={{ color: 'var(--on-surface)', textDecoration: 'none', padding: '0.5rem', borderRadius: '0.5rem' }}>Dashboard</Link>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <Link to="/" style={getLinkStyle('/')}>Dashboard</Link>
         {role !== 'organizer' && (
-          <Link to="/explore" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>Explore & Match</Link>
+          <Link to="/explore" style={getLinkStyle('/explore')}>Explore & Match</Link>
         )}
         {token && role !== 'organizer' && (
-          <Link to="/history" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>History</Link>
+          <Link to="/history" style={getLinkStyle('/history')}>History</Link>
         )}
         {role === 'organizer' && (
-          <Link to="/organizer" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>Organizer Mode</Link>
+          <Link to="/organizer" style={getLinkStyle('/organizer')}>Organizer Mode</Link>
         )}
         {token && (
-          <Link to="/profile/me" style={{ color: 'var(--on-surface-variant)', textDecoration: 'none', padding: '0.5rem' }}>My Profile</Link>
+          <Link to="/profile/me" style={getLinkStyle('/profile/me')}>My Profile</Link>
         )}
       </div>
 

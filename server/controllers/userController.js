@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Project from '../models/Project.js';
 
 export const getDevelopers = async (req, res) => {
   try {
@@ -63,6 +64,11 @@ export const getUserStats = async (req, res) => {
     const user = await User.findById(req.params.id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    const completedProjectsCount = await Project.countDocuments({
+      $or: [{ creatorId: user._id }, { collaborators: user._id }],
+      isFinished: true
+    });
+
     res.json({
       name: user.name,
       email: user.email,
@@ -72,7 +78,7 @@ export const getUserStats = async (req, res) => {
       githubUrl: user.githubUrl,
       skills: user.skills,
       trustScore: user.trustScore,
-      hackathonsParticipated: user.hackathonsParticipated.length
+      completedProjectsCount
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

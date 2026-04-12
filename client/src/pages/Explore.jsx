@@ -15,15 +15,11 @@ const Explore = () => {
   // Fetch all projects (Hackathons and generic Projects)
   const fetchProjects = async () => {
     try {
-      const [hacksRes, projRes] = await Promise.all([
-        axios.get('/api/hackathons'),
-        axios.get('/api/projects')
-      ]);
-      const formattedHacks = hacksRes.data.map(h => ({ ...h, type: 'Hackathon', required: [], creatorId: h.organizerId }));
+      const projRes = await axios.get('/api/projects');
       const formattedProjects = projRes.data.map(p => ({ ...p, type: 'Project', required: p.requiredDevs || [], location: p.creatorId?.location || 'Remote', startDate: 'Flexible', creatorId: p.creatorId?._id || p.creatorId, collaborators: p.collaborators || [], rejected: p.rejected || [] }));
       
       const currentUserId = localStorage.getItem('userId');
-      setProjects([...formattedHacks, ...formattedProjects].filter(p => !p.rejected?.includes(currentUserId)));
+      setProjects(formattedProjects.filter(p => !p.rejected?.includes(currentUserId)));
     } catch (e) {
       console.error('Error fetching projects:', e);
       setProjects([]);

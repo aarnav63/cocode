@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Project from '../models/Project.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -71,8 +72,14 @@ export const loginUser = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    const user = await User.findById(req.user.id).select('-password').lean();
+    
+    const completedProjectsCount = await Project.countDocuments({
+      $or: [{ creatorId: user._id }, { collaborators: user._id }],
+      isFinished: true
+    });
+
+    res.json({ ...user, completedProjectsCount });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

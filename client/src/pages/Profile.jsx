@@ -28,7 +28,7 @@ const Profile = () => {
           githubUrl: u.githubUrl || '',
           skills: u.skills || [],
           trustScore: u.trustScore || { communication: 0, leadership: 0, reliability: 0, totalRatings: 0 },
-          hackathonsParticipated: u.hackathonsParticipated?.length || 0
+          completedProjectsCount: u.completedProjectsCount || 0
         });
         setEditData({
           location: u.location || 'Remote',
@@ -266,7 +266,7 @@ const Profile = () => {
               <div style={{ marginTop: '3rem', textAlign: 'center', padding: '2rem', background: `rgba(${rgb}, 0.1)`, borderRadius: '12px', border: `1px solid rgba(${rgb}, 0.2)` }}>
                 <h3 style={{ color }}>{title}</h3>
                 <p style={{ color: 'var(--on-surface-variant)', marginTop: '0.5rem' }}>
-                  {user.name.split(' ')[0]} has effectively contributed to {user.hackathonsParticipated} projects. {text}
+                  {user.name.split(' ')[0]} has effectively contributed to {user.completedProjectsCount} projects. {text}
                 </p>
               </div>
             );

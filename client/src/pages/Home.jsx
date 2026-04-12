@@ -190,11 +190,11 @@ const Home = () => {
       </div>
 
       <section style={{ marginTop: '3rem' }}>
-        {role !== 'organizer' && myProjects.length > 0 && (
+        {role !== 'organizer' && myProjects.filter(p => !p.hackathonId).length > 0 && (
           <>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', marginTop: '2rem' }}>My Active Projects</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {myProjects.map(p => (
+              {myProjects.filter(p => !p.hackathonId).map(p => (
                 <div key={p._id} className="glass-panel">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{p.title}</h3>
@@ -312,16 +312,52 @@ const Home = () => {
 
       {/* NEW SECTION: PROJECTS I'VE JOINED */}
       <section style={{ marginTop: '3rem', paddingBottom: '2rem' }}>
-        {role !== 'organizer' && joinedProjects.length > 0 && (
+        {role !== 'organizer' && joinedProjects.filter(p => !p.hackathonId).length > 0 && (
           <>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', marginTop: '2rem' }}>Projects I've Joined</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {joinedProjects.map(p => (
+              {joinedProjects.filter(p => !p.hackathonId).map(p => (
                 <div key={p._id} className="glass-panel" style={{ border: '1px solid var(--secondary)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <span className="pill-tag success" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>✓ Request Accepted</span>
                       <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: 'var(--secondary)' }}>{p.title}</h3>
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Led by: {p.creatorId?.name}</span>
+                  </div>
+                  <p style={{ color: 'var(--on-surface-variant)', marginTop: '0.5rem' }}>{p.description}</p>
+                  
+                  {p.collaborators && p.collaborators.length > 0 && (
+                    <div style={{ marginTop: '1.5rem' }}>
+                      <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--on-surface)' }}>Team Members</h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <Link to={`/profile/${p.creatorId?._id}`} className="pill-tag" style={{ background: 'var(--primary)', color: 'var(--on-primary)', textDecoration: 'none' }}>
+                            👑 {p.creatorId?.name} (Leader)
+                        </Link>
+                        {p.collaborators.map(c => (
+                          <Link key={c._id} to={`/profile/${c._id}`} className="pill-tag" style={{ textDecoration: 'none', background: 'var(--surface-container)' }}>
+                            {c._id === localStorage.getItem('userId') ? 'You' : c.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {role !== 'organizer' && joinedProjects.filter(p => p.hackathonId).length > 0 && (
+          <>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', marginTop: '2rem' }}>Hackathons I've Joined</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {joinedProjects.filter(p => p.hackathonId).map(p => (
+                <div key={p._id} className="glass-panel" style={{ border: '1px solid var(--primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <span className="pill-tag" style={{ background: 'var(--primary)', color: 'var(--background)', marginBottom: '0.5rem', display: 'inline-block' }}>✓ Hackathon Team</span>
+                      <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: 'var(--primary)' }}>{p.title}</h3>
                     </div>
                     <span style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Led by: {p.creatorId?.name}</span>
                   </div>
