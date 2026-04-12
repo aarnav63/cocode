@@ -142,12 +142,18 @@ const Login = () => {
                 <option value="organizer">Event Organizer</option>
               </select>
             </div>
-            <div className="input-group">
-              <label className="input-label">Mobile Number</label>
-              <input type="tel" className="input-field" placeholder="e.g. +1 555-123-4567" value={phone} onChange={e => setPhone(e.target.value)} required />
-            </div>
-            {role === 'developer' && (
+            {role === 'organizer' ? (
+              <div style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--on-surface-variant)', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
+                <p>Organizations cannot register directly.</p>
+                <p style={{ marginTop: '0.5rem' }}>Please contact dev to set up an organizer account.</p>
+                <a href="mailto:admin@cocode.com" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block' }}>Contact Dev</a>
+              </div>
+            ) : (
               <>
+                <div className="input-group">
+                  <label className="input-label">Mobile Number</label>
+                  <input type="tel" className="input-field" placeholder="e.g. +1 555-123-4567" value={phone} onChange={e => setPhone(e.target.value)} required />
+                </div>
                 <div className="input-group">
                   <label className="input-label">Location</label>
                   <input type="text" className="input-field" placeholder="e.g. San Francisco, CA" value={location} onChange={e => setLocation(e.target.value)} required />
@@ -156,12 +162,11 @@ const Login = () => {
                   <label className="input-label">Skills (comma separated)</label>
                   <input type="text" className="input-field" placeholder="e.g. React, Node.js, Python" value={skills} onChange={e => setSkills(e.target.value)} required />
                 </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
+                  Complete Profile
+                </button>
               </>
             )}
-            
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-              Complete Profile
-            </button>
           </form>
         )}
       </div>

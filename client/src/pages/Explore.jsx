@@ -109,7 +109,7 @@ const Explore = () => {
                 <p style={{ color: 'var(--on-surface-variant)', marginBottom: '1rem' }}>{p.description}</p>
                 <div style={{ fontSize: '0.875rem' }}>
                   <span style={{ marginRight: '1rem' }}>📍 {p.location}</span>
-                  <span>🗓️ {p.startDate}</span>
+                  {p.type !== 'Project' && <span>🗓️ {p.startDate}</span>}
                 </div>
               </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>

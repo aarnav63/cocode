@@ -69,6 +69,7 @@ export const getUserStats = async (req, res) => {
       phone: user.phone,
       role: user.role,
       location: user.location,
+      githubUrl: user.githubUrl,
       skills: user.skills,
       trustScore: user.trustScore,
       hackathonsParticipated: user.hackathonsParticipated.length
@@ -80,13 +81,14 @@ export const getUserStats = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { skills, location, phone } = req.body;
+    const { skills, location, phone, githubUrl } = req.body;
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
     
     if (skills) user.skills = skills;
     if (location) user.location = location;
     if (phone) user.phone = phone;
+    if (githubUrl !== undefined) user.githubUrl = githubUrl;
 
     await user.save();
     res.json(user);

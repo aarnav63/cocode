@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   }],
   location: { type: String },
   phone: { type: String },
+  githubUrl: { type: String },
   trustScore: {
     communication: { type: Number, default: 0 },
     leadership: { type: Number, default: 0 },
