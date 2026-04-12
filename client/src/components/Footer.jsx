@@ -2,7 +2,7 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer style={{
+    <footer className="site-footer" style={{
       position: 'fixed',
       bottom: '16px',
       left: '50%',
@@ -17,7 +17,7 @@ const Footer = () => {
       color: 'var(--on-surface-variant)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
     }}>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <p style={{ margin: 0, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>
           Made with ❤️ by 
           <span style={{ fontWeight: 'bold', color: 'var(--primary)', marginLeft: '4px' }}>Aarnav</span>
@@ -25,7 +25,7 @@ const Footer = () => {
         
         <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
         
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
           <a 
              href="https://github.com/aarnav63" 
             target="_blank" 
