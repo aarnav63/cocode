@@ -49,7 +49,8 @@ router.post(
     body('role').optional().isIn(['developer', 'organizer']),
     body('skills').optional().isArray(),
     body('location').optional().trim().isLength({ max: 100 }),
-    body('phone').optional().trim().isLength({ min: 7, max: 20 })
+    body('phone').optional().trim().isLength({ min: 7, max: 20 }),
+    body('githubUrl').optional().isURL().withMessage('GitHub URL must be valid')
   ],
   validate,
   completeGoogleProfile

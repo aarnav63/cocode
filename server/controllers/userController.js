@@ -47,17 +47,18 @@ export const getUniqueLocations = async (req, res) => {
   try {
     const query = req.query.q || req.query.query;
     if (query) {
-      const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=12&dedupe=1&q=${encodeURIComponent(query)}`;
-      const response = await fetch(nominatimUrl, {
+      const teleportUrl = `https://api.teleport.org/api/cities/?search=${encodeURIComponent(query)}&limit=12`;
+      const response = await fetch(teleportUrl, {
         headers: {
           'User-Agent': 'CoCode-App/1.0',
           'Accept-Language': 'en'
         }
       });
       const results = await response.json();
+      const cities = results._embedded?.['city:search-results'] || [];
       const locations = Array.from(new Set(
-        results
-          .map(r => r.display_name)
+        cities
+          .map(item => item.matching_full_name)
           .filter(Boolean)
       ));
       return res.json(locations);

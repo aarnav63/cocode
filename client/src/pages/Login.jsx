@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -25,6 +25,9 @@ const Login = () => {
   const [role, setRole] = useState('developer');
   const [location, setLocation] = useState('');
   const [skills, setSkills] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [isLocationSearching, setIsLocationSearching] = useState(false);
   const [phone, setPhone] = useState('');
   
   // Google state
@@ -32,6 +35,33 @@ const Login = () => {
   const [googleId, setGoogleId] = useState('');
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!requireOnboarding || location.length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsLocationSearching(true);
+        const res = await axios.get(`/api/users/locations?query=${encodeURIComponent(location)}`);
+        setLocationSuggestions(res.data || []);
+      } catch (error) {
+        console.error('Location autocomplete failed:', error);
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocationSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [location, requireOnboarding]);
+
+  const handleSelectLocation = (value) => {
+    setLocation(value);
+    setLocationSuggestions([]);
+  };
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -64,7 +94,7 @@ const Login = () => {
       const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s);
       
       const res = await axios.post('/api/auth/complete-profile', {
-        name, email, googleId, role, location, phone, skills: skillsArray
+        name, email, googleId, role, location, phone, skills: skillsArray, githubUrl
       });
       localStorage.setItem('userId', res.data._id);
       localStorage.setItem('role', res.data.role);
@@ -152,9 +182,41 @@ const Login = () => {
                   <label className="input-label">Mobile Number</label>
                   <input type="tel" className="input-field" placeholder="e.g. +1 555-123-4567" value={phone} onChange={e => setPhone(e.target.value)} required />
                 </div>
-                <div className="input-group">
+                <div className="input-group" style={{ position: 'relative' }}>
                   <label className="input-label">Location</label>
-                  <input type="text" className="input-field" placeholder="e.g. San Francisco, CA" value={location} onChange={e => setLocation(e.target.value)} required />
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="e.g. Bangalore, India"
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    required
+                    autoComplete="off"
+                  />
+                  {locationSuggestions.length > 0 && (
+                    <ul style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, background: 'var(--surface)', border: '1px solid var(--outline-variant)', borderRadius: '8px', margin: '0.25rem 0 0 0', padding: 0, listStyle: 'none', maxHeight: '220px', overflowY: 'auto' }}>
+                      {locationSuggestions.map(loc => (
+                        <li
+                          key={loc}
+                          onMouseDown={() => handleSelectLocation(loc)}
+                          style={{ padding: '0.75rem 1rem', cursor: 'pointer', color: 'var(--on-surface)' }}
+                        >
+                          {loc}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {isLocationSearching && <div style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginTop: '0.5rem' }}>Searching locations…</div>}
+                </div>
+                <div className="input-group">
+                  <label className="input-label">GitHub URL</label>
+                  <input
+                    type="url"
+                    className="input-field"
+                    placeholder="https://github.com/username"
+                    value={githubUrl}
+                    onChange={e => setGithubUrl(e.target.value)}
+                  />
                 </div>
                 <div className="input-group">
                   <label className="input-label">Skills (comma separated)</label>

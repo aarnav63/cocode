@@ -8,6 +8,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ location: '', phone: '', skills: '', githubUrl: '' });
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [isLocationSearching, setIsLocationSearching] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,6 +43,28 @@ const Profile = () => {
     };
     fetchUser();
   }, [id]);
+
+  useEffect(() => {
+    if (!isEditing || !editData.location || editData.location.length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsLocationSearching(true);
+        const res = await axios.get(`/api/users/locations?query=${encodeURIComponent(editData.location)}`);
+        setLocationSuggestions(res.data || []);
+      } catch (err) {
+        console.error('Location autocomplete failed:', err);
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocationSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [editData.location, isEditing]);
 
   const handleSaveProfile = async () => {
     try {
@@ -109,36 +133,26 @@ const Profile = () => {
                   autoComplete="off"
                   onChange={e => setEditData({...editData, location: e.target.value})}
                 />
-                
-                {isEditing && editData.location.length >= 0 && (
-                  <ul className="custom-dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--primary)', borderRadius: '8px', zIndex: 10, listStyle: 'none', padding: '0.5rem 0', margin: '0.25rem 0 0 0', maxHeight: '150px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', display: 'none' }}>
-                    {/* Handled mostly by CSS hover and state, but we can do it inline easily with onFocus */}
+
+                {locationSuggestions.length > 0 && (
+                  <ul style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--outline-variant)', borderRadius: '8px', zIndex: 20, listStyle: 'none', padding: 0, margin: '0.25rem 0 0 0', maxHeight: '240px', overflowY: 'auto', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    {locationSuggestions.map(loc => (
+                      <li
+                        key={loc}
+                        onMouseDown={() => setEditData(prev => ({ ...prev, location: loc }))}
+                        style={{ padding: '0.75rem 1rem', cursor: 'pointer', color: 'var(--on-surface)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                      >
+                        {loc}
+                      </li>
+                    ))}
                   </ul>
                 )}
-                
-                {/* Custom dropdown UI */}
-                <div className="location-autocomplete">
-                  {(() => {
-                    const allCities = ["Remote", "Bangalore, India", "Mumbai, India", "New Delhi, India", "Hyderabad, India", "Pune, India", "Chennai, India", "Gurgaon, India", "Noida, India", "Ahmedabad, India", "Kolkata, India", "San Francisco, CA", "New York, NY", "London, UK", "Toronto, ON", "Berlin, Germany", "Seattle, WA"];
-                    const filtered = allCities.filter(c => c.toLowerCase().includes(editData.location.toLowerCase()) && editData.location !== c);
-                    if (filtered.length === 0 || editData.location === '') return null;
-                    return (
-                      <ul style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'rgba(20, 20, 20, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid var(--primary)', borderRadius: '8px', zIndex: 10, listStyle: 'none', padding: '0.5rem 0', margin: '0.25rem 0 0 0', maxHeight: '180px', overflowY: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.7)' }}>
-                        {filtered.map(c => (
-                          <li 
-                            key={c} 
-                            style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--on-surface)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}
-                            onMouseDown={() => setEditData({...editData, location: c})}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.background = 'rgba(78, 222, 163, 0.1)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; e.currentTarget.style.background = 'transparent'; }}
-                          >
-                            {c}
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  })()}
-                </div>
+
+                {isLocationSearching && (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginTop: '0.5rem' }}>
+                    Searching locations...
+                  </div>
+                )}
               </div>
             </div>
             <div>

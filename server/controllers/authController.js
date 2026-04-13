@@ -178,7 +178,7 @@ export const googleLogin = async (req, res) => {
 
 export const completeGoogleProfile = async (req, res) => {
   try {
-    const { email, name, googleId, phone, location, skills, role } = req.body;
+    const { email, name, googleId, phone, location, skills, role, githubUrl } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -193,6 +193,7 @@ export const completeGoogleProfile = async (req, res) => {
       skills: skills || [],
       location,
       phone,
+      githubUrl,
       trustScore: { communication: 0, leadership: 0, reliability: 0, totalRatings: 0 }
     });
 
