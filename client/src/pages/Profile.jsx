@@ -104,19 +104,25 @@ const Profile = () => {
                   style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: '0.75rem' }}
                   onClick={() => {
                     if (navigator.geolocation) {
-                      setEditData(prev => ({...prev, location: 'Fetching...'}));
+                      setIsLocationSearching(true);
                       navigator.geolocation.getCurrentPosition(async (position) => {
                         try {
-                          const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`);
-                          const addr = res.data.address;
+                          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`);
+                          if (!response.ok) {
+                            throw new Error('Reverse geocode failed');
+                          }
+                          const data = await response.json();
+                          const addr = data.address || {};
                           const city = addr.city || addr.town || addr.state_district || addr.region || addr.county || addr.suburb || addr.municipality || addr.village || 'Unknown Region';
                           const state = addr.state || '';
                           setEditData(prev => ({...prev, location: state ? `${city}, ${state}` : city}));
                         } catch (err) {
-                           setEditData(prev => ({...prev, location: 'Error fetching location'}));
+                          console.error('Reverse geocode failed:', err);
+                        } finally {
+                          setIsLocationSearching(false);
                         }
                       }, () => {
-                        setEditData(prev => ({...prev, location: 'Permission denied'}));
+                        setIsLocationSearching(false);
                       });
                     }
                   }}
@@ -224,7 +230,7 @@ const Profile = () => {
           <h2 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             Dev-Credit / Trust Score
             <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>
-              Based on {user.trustScore.totalRatings} hackathon ratings
+              Based on {user.trustScore.totalRatings} project ratings
             </span>
           </h2>
           

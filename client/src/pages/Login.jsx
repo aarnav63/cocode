@@ -183,7 +183,45 @@ const Login = () => {
                   <input type="tel" className="input-field" placeholder="e.g. +1 555-123-4567" value={phone} onChange={e => setPhone(e.target.value)} required />
                 </div>
                 <div className="input-group" style={{ position: 'relative' }}>
-                  <label className="input-label">Location</label>
+                  <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Location</span>
+                    <span
+                      style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem', marginLeft: '1rem' }}
+                      title="Auto-fetch location via GPS"
+                      tabIndex={0}
+                      role="button"
+                      onClick={async () => {
+                        if (navigator.geolocation) {
+                          setIsLocationSearching(true);
+                          navigator.geolocation.getCurrentPosition(async (position) => {
+                            try {
+                              const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`);
+                              if (!response.ok) throw new Error('Reverse geocode failed');
+                              const data = await response.json();
+                              const addr = data.address || {};
+                              const city = addr.city || addr.town || addr.state_district || addr.region || addr.county || addr.suburb || addr.municipality || addr.village || 'Unknown Region';
+                              const state = addr.state || '';
+                              setLocation(state ? `${city}, ${state}` : city);
+                            } catch (err) {
+                              console.error('Reverse geocode failed:', err);
+                            } finally {
+                              setIsLocationSearching(false);
+                            }
+                          }, () => {
+                            setIsLocationSearching(false);
+                          });
+                        }
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.target.click();
+                        }
+                      }}
+                    >
+                      📍 Auto-fetch GPS
+                    </span>
+                  </label>
                   <input
                     type="text"
                     className="input-field"

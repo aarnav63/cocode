@@ -45,8 +45,11 @@ export const getUniqueSkills = async (req, res) => {
 
 export const getUniqueLocations = async (req, res) => {
   try {
-    const query = req.query.q || req.query.query;
-    if (query) {
+    const rawQuery = req.query.q || req.query.query;
+    const query = typeof rawQuery === 'string' ? rawQuery.trim() : '';
+    const invalidQueries = ['fetching...', 'error fetching location', 'permission denied'];
+
+    if (query && query.length >= 2 && !invalidQueries.includes(query.toLowerCase())) {
       const teleportUrl = `https://api.teleport.org/api/cities/?search=${encodeURIComponent(query)}&limit=12`;
       const response = await fetch(teleportUrl, {
         headers: {
@@ -54,6 +57,10 @@ export const getUniqueLocations = async (req, res) => {
           'Accept-Language': 'en'
         }
       });
+      if (!response.ok) {
+        console.error('Teleport search failed', response.status, response.statusText);
+        return res.json([]);
+      }
       const results = await response.json();
       const cities = results._embedded?.['city:search-results'] || [];
       const locations = Array.from(new Set(
