@@ -30,8 +30,7 @@ const Explore = () => {
 
   const handleRequestJoin = async (projId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/projects/${projId}/request`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`/api/projects/${projId}/request`, {});
       
       // Update UI instantaneously
       setProjects(projects.map(p => {
@@ -64,23 +63,35 @@ const Explore = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    const fetchDropdowns = async () => {
+    const fetchSkills = async () => {
       try {
-        const [skillsRes, locsRes] = await Promise.all([
-          axios.get('/api/users/skills'),
-          axios.get('/api/users/locations')
-        ]);
+        const skillsRes = await axios.get('/api/users/skills');
         setAvailableSkills(skillsRes.data);
-        
-        const hardcodedCities = ["Remote", "Bangalore, India", "Mumbai, India", "New Delhi, India", "Hyderabad, India", "Pune, India", "Chennai, India", "Gurgaon, India", "Noida, India", "Ahmedabad, India", "Kolkata, India", "San Francisco, CA", "New York, NY", "London, UK", "Toronto, ON", "Berlin, Germany", "Seattle, WA"];
-        const uniqueLocs = Array.from(new Set([...locsRes.data, ...hardcodedCities]));
-        setAvailableLocations(uniqueLocs);
       } catch (e) {
-        console.error('Error fetching dropdowns:', e);
+        console.error('Error fetching skills:', e);
       }
     };
-    fetchDropdowns();
+    fetchSkills();
   }, []);
+
+  useEffect(() => {
+    if (!locationFilter || locationFilter.length < 2) {
+      setAvailableLocations([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await axios.get(`/api/users/locations?query=${encodeURIComponent(locationFilter)}`);
+        setAvailableLocations(res.data || []);
+      } catch (e) {
+        console.error('Error fetching locations:', e);
+        setAvailableLocations([]);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [locationFilter]);
 
   return (
     <div>

@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Navbar from './components/Navbar';
@@ -12,11 +14,43 @@ import History from './pages/History';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function App() {
-  // Use a placeholder or environment variable for Client ID
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
-  const token = localStorage.getItem('token');
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  if (!token) {
+  useEffect(() => {
+    const refreshAccess = async () => {
+      try {
+        const res = await axios.post('/api/auth/refresh');
+        const newToken = res.data.token;
+        if (newToken) {
+          axios.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          setIsAuthenticated(true);
+        } else {
+          delete axios.defaults.headers.common.Authorization;
+          setIsAuthenticated(false);
+        }
+      } catch (err) {
+        console.error('Token refresh failed:', err);
+        delete axios.defaults.headers.common.Authorization;
+        setIsAuthenticated(false);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    refreshAccess();
+  }, []);
+
+  if (!authChecked) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <p>Checking authentication...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <GoogleOAuthProvider clientId={clientId}>
         <Router>

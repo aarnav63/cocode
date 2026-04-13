@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import path from 'path';
@@ -16,7 +17,15 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+
+app.use(helmet({
+  contentSecurityPolicy: false
+}));
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://cocode-web.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 
 import authRoutes from './routes/authRoutes.js';
@@ -35,7 +44,7 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/projects', projectRoutes);
 
 app.get('/', (req, res) => {
-  res.send('DevCollab API is running');
+  res.send('Cocode API is running');
 });
 
 const PORT = process.env.PORT || 5000;

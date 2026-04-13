@@ -13,11 +13,9 @@ const History = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
         const [projRes, ratingsRes] = await Promise.all([
-          axios.get('/api/projects/history', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('/api/ratings/me', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get('/api/projects/history'),
+          axios.get('/api/ratings/me')
         ]);
         setHistoryProjects(projRes.data);
         setMyRatings(ratingsRes.data || []);
@@ -38,14 +36,13 @@ const History = () => {
   const submitRating = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
       await axios.post('/api/ratings', {
         rateeId: ratee._id,
         hackathonId: activeProjectId,
         communication: ratingData.communication,
         leadership: ratingData.leadership,
         reliability: ratingData.reliability
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
       
       setShowRateModal(false);
       setMyRatings([...myRatings, { rateeId: ratee._id, hackathonId: activeProjectId }]);

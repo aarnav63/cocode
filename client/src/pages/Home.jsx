@@ -26,19 +26,16 @@ const Home = () => {
       .then(res => setHackathons(res.data))
       .catch(err => console.error('Error fetching hackathons:', err));
 
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => setUserName(res.data.name || ''))
-        .catch(() => setUserName(''));
-    }
+    axios.get('/api/auth/me')
+      .then(res => setUserName(res.data.name || ''))
+      .catch(() => setUserName(''));
 
-    if (token && role !== 'organizer') {
-      axios.get('/api/projects/me', { headers: { Authorization: `Bearer ${token}` } })
+    if (role !== 'organizer') {
+      axios.get('/api/projects/me')
         .then(res => setMyProjects(res.data))
         .catch(err => console.error('Error fetching my projects', err));
 
-      axios.get('/api/projects/joined', { headers: { Authorization: `Bearer ${token}` } })
+      axios.get('/api/projects/joined')
         .then(res => setJoinedProjects(res.data))
         .catch(err => console.error('Error fetching joined projects', err));
     }
@@ -46,8 +43,7 @@ const Home = () => {
 
   const acceptRequest = async (projId, userId) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.put(`/api/projects/${projId}/accept/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.put(`/api/projects/${projId}/accept/${userId}`, {});
       setMyProjects(myProjects.map(p => p._id === projId ? res.data : p));
     } catch(err) { console.error('Error accepting request: ', err); }
   };
@@ -55,15 +51,13 @@ const Home = () => {
   const rejectRequest = async (projId, userId) => {
     try {
       if(!window.confirm('Are you sure you want to reject this developer?')) return;
-      const token = localStorage.getItem('token');
-      const res = await axios.put(`/api/projects/${projId}/reject/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.put(`/api/projects/${projId}/reject/${userId}`, {});
       setMyProjects(myProjects.map(p => p._id === projId ? res.data : p));
     } catch(err) { console.error('Error rejecting request: ', err); }
   };
 
   const toggleSkillFulfillment = async (projId, reqId) => {
     try {
-      const token = localStorage.getItem('token');
       setMyProjects(myProjects.map(p => {
         if (p._id === projId) {
           return {
@@ -73,15 +67,14 @@ const Home = () => {
         }
         return p;
       }));
-      await axios.put(`/api/projects/${projId}/fulfill/${reqId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/projects/${projId}/fulfill/${reqId}`, {});
     } catch(err) { console.error('Error toggling skill: ', err); }
   };
 
   const removeCollaborator = async (projId, userId) => {
     try {
       if(!window.confirm('Are you sure you want to remove this developer from the team?')) return;
-      const token = localStorage.getItem('token');
-      await axios.put(`/api/projects/${projId}/remove/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/projects/${projId}/remove/${userId}`, {});
       setMyProjects(myProjects.map(p => {
         if (p._id === projId) {
           return { ...p, collaborators: p.collaborators.filter(c => c._id !== userId) };
@@ -94,14 +87,12 @@ const Home = () => {
   const handleCreateProject = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
       const devsArray = requiredDevs.split(',').map(s => {
         return { skill: s.trim(), count: 1, fulfilled: false };
       }).filter(s => s.skill);
 
       const res = await axios.post('/api/projects', 
-        { title, description, requiredDevs: devsArray },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { title, description, requiredDevs: devsArray }
       );
       setShowModal(false);
       setTitle(''); setDescription(''); setRequiredDevs('');
@@ -155,8 +146,13 @@ const Home = () => {
 
       <div className="grid" style={{ gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
         <section>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Upcoming Hackathons</h2>
-          
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Upcoming Hackathons</h2>
+          <div style={{ background: 'linear-gradient(90deg, rgba(243,156,18,0.12), rgba(255,255,255,0))', border: '1px solid #f39c12', borderRadius: '16px', padding: '1rem 1.25rem', marginBottom: '1.5rem', color: '#6f3708', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.4rem' }}>🚧</span>
+            <div>
+              <strong>Coming Soon:</strong> New hackathons are arriving soon. Keep an eye on this section for the next event lineup.
+            </div>
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {hackathons.map(h => (
               <div key={h._id} className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -275,8 +271,7 @@ const Home = () => {
                       style={{ flex: 1, padding: '0.75rem', fontSize: '0.95rem' }}
                       onClick={async () => {
                         try {
-                          const token = localStorage.getItem('token');
-                          const res = await axios.put(`/api/projects/${p._id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                          const res = await axios.put(`/api/projects/${p._id}/complete`, {});
                           setMyProjects(myProjects.map(proj => proj._id === p._id ? { ...proj, isOpen: res.data.isOpen } : proj));
                         } catch (err) {
                           console.error('Error toggling project status: ', err);
@@ -292,8 +287,7 @@ const Home = () => {
                       onClick={async () => {
                         try {
                           if(!window.confirm('Are you certain? This will permanent move the project to History.')) return;
-                          const token = localStorage.getItem('token');
-                          await axios.put(`/api/projects/${p._id}/finish`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                          await axios.put(`/api/projects/${p._id}/finish`, {});
                           setMyProjects(myProjects.filter(proj => proj._id !== p._id));
                         } catch (err) {
                           console.error('Error finishing project: ', err);

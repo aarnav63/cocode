@@ -69,7 +69,7 @@ The Express backend securely processes data strings, handles image/asset referen
 - **`Team.js`**: Group structural model tying users to Hackathons.
 
 ### Middleware (`/server/middleware`)
-- **`authMiddleware.js`**: The gatekeeper. Validates JSON Web Tokens attached to `Authorization: Bearer <token>` incoming requests. If the JWT is valid, it decodes the payload, queries the database for the user payload, and injects `req.user` for downstream routes to securely use.
+- **`authMiddleware.js`**: The gatekeeper. Validates JSON Web Tokens attached to `Authorization: Bearer <token>` incoming requests. If the JWT is valid, it decodes the payload, queries the database    the user payload, and injects `req.user` for downstream routes to securely use.
 
 ---
 

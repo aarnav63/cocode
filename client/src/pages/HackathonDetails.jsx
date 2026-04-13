@@ -23,9 +23,8 @@ const HackathonDetails = () => {
   const handleCreateTeam = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
       const requiredDevs = skillInput.split(',').map(s => ({ skill: s.trim() })).filter(s => s.skill);
-      await axios.post('/api/projects', { ...newTeam, requiredDevs, hackathonId: id }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post('/api/projects', { ...newTeam, requiredDevs, hackathonId: id });
       setShowCreateModal(false);
       setNewTeam({ title: '', description: '' });
       setSkillInput('');
@@ -37,8 +36,7 @@ const HackathonDetails = () => {
 
   const handleRequestJoin = async (teamId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/projects/${teamId}/request`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`/api/projects/${teamId}/request`, {});
       fetchDetails();
     } catch (err) {
       console.error(err);
@@ -47,8 +45,7 @@ const HackathonDetails = () => {
 
   const handleLeaveTeam = async (teamId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`/api/projects/${teamId}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/projects/${teamId}/leave`, {});
       fetchDetails();
     } catch (err) {
       console.error(err);
@@ -57,8 +54,7 @@ const HackathonDetails = () => {
 
   const handleAcceptRequest = async (teamId, userId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`/api/projects/${teamId}/accept/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/projects/${teamId}/accept/${userId}`, {});
       fetchDetails();
     } catch (err) {
       console.error(err);
@@ -67,8 +63,7 @@ const HackathonDetails = () => {
 
   const handleRejectRequest = async (teamId, userId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`/api/projects/${teamId}/reject/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/projects/${teamId}/reject/${userId}`, {});
       fetchDetails();
     } catch (err) {
       console.error(err);
@@ -77,8 +72,7 @@ const HackathonDetails = () => {
 
   const handleDeleteTeam = async (teamId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/projects/${teamId}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`/api/projects/${teamId}`);
       fetchDetails();
     } catch (err) {
       console.error(err);

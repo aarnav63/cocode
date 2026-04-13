@@ -1,18 +1,26 @@
 import React from 'react';
+import axios from 'axios';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
   const role = localStorage.getItem('role');
+  const isAuthenticated = Boolean(userId);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/auth/logout');
+    } catch (err) {
+      console.error('Logout request failed', err);
+    }
+
     localStorage.removeItem('role');
     localStorage.removeItem('userId');
+    delete axios.defaults.headers.common.Authorization;
     navigate('/login');
-    window.location.reload();
+    globalThis.location.reload();
   };
 
   const getLinkStyle = (path) => {
@@ -43,22 +51,22 @@ const Navbar = () => {
         {role !== 'organizer' && (
           <Link to="/explore" style={getLinkStyle('/explore')}>Explore & Match</Link>
         )}
-        {token && role !== 'organizer' && (
+        {isAuthenticated && role !== 'organizer' && (
           <Link to="/history" style={getLinkStyle('/history')}>History</Link>
         )}
         {role === 'organizer' && (
           <Link to="/organizer" style={getLinkStyle('/organizer')}>Organizer Mode</Link>
         )}
-        {token && (
+        {isAuthenticated && (
           <Link to="/profile/me" style={getLinkStyle('/profile/me')}>My Profile</Link>
         )}
       </div>
 
       <div style={{ marginTop: 'auto' }}>
-        {!token ? (
-          <Link to="/login" className="btn btn-primary" style={{ width: '100%', textAlign: 'center' }}>Connect / Login</Link>
-        ) : (
+        {isAuthenticated ? (
           <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>Logout</button>
+        ) : (
+          <Link to="/login" className="btn btn-primary" style={{ width: '100%', textAlign: 'center' }}>Connect / Login</Link>
         )}
       </div>
     </nav>

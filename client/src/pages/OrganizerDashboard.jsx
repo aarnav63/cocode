@@ -17,8 +17,7 @@ const OrganizerDashboard = () => {
   });
 
   const fetchEvents = () => {
-    const token = localStorage.getItem('token');
-    axios.get('/api/hackathons', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get('/api/hackathons')
       .then(res => {
         // filter events to only show those by this organizer
         const mine = res.data.filter(h => h.organizerId._id === localStorage.getItem('userId') || h.organizerId === localStorage.getItem('userId'));
@@ -34,8 +33,7 @@ const OrganizerDashboard = () => {
   const handleCreateHackathon = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('/api/hackathons', formData, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post('/api/hackathons', formData);
       setFormData({ title: '', description: '', startDate: '', endDate: '', location: '', rules: '' });
       setActiveTab('events');
       fetchEvents();

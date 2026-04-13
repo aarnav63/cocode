@@ -46,7 +46,6 @@ const Login = () => {
           setName(res.data.name);
           setGoogleId(res.data.googleId);
         } else {
-          localStorage.setItem('token', res.data.token);
           localStorage.setItem('userId', res.data._id);
           localStorage.setItem('role', res.data.role);
           navigate(res.data.role === 'organizer' ? '/organizer' : '/');
@@ -67,7 +66,6 @@ const Login = () => {
       const res = await axios.post('/api/auth/complete-profile', {
         name, email, googleId, role, location, phone, skills: skillsArray
       });
-      localStorage.setItem('token', res.data.token);
       localStorage.setItem('userId', res.data._id);
       localStorage.setItem('role', res.data.role);
       alert('Welcome! Profile completed.');

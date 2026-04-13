@@ -45,6 +45,24 @@ export const getUniqueSkills = async (req, res) => {
 
 export const getUniqueLocations = async (req, res) => {
   try {
+    const query = req.query.q || req.query.query;
+    if (query) {
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=12&dedupe=1&q=${encodeURIComponent(query)}`;
+      const response = await fetch(nominatimUrl, {
+        headers: {
+          'User-Agent': 'CoCode-App/1.0',
+          'Accept-Language': 'en'
+        }
+      });
+      const results = await response.json();
+      const locations = Array.from(new Set(
+        results
+          .map(r => r.display_name)
+          .filter(Boolean)
+      ));
+      return res.json(locations);
+    }
+
     const rawLocations = await User.distinct('location', { role: 'developer' });
     const uniqueMap = new Map();
     rawLocations.filter(l => l).forEach(l => {

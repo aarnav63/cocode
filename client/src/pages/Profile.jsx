@@ -12,11 +12,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
         const endpoint = id === 'me' ? '/api/auth/me' : `/api/users/${id}/stats`;
-        const res = await axios.get(endpoint, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
+        const res = await axios.get(endpoint);
         
         const u = res.data;
         setUser({
@@ -47,14 +44,13 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
       const skillsArray = editData.skills.split(',').map(s => s.trim()).filter(s => s);
       const res = await axios.put('/api/users/profile', {
         location: editData.location,
         phone: editData.phone,
         githubUrl: editData.githubUrl,
         skills: skillsArray
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
       
       setUser({ ...user, location: res.data.location, phone: res.data.phone, githubUrl: res.data.githubUrl, skills: res.data.skills });
       setIsEditing(false);
